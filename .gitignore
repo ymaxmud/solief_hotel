@@ -25,3 +25,4 @@ pnpm-debug.log*
 
 # keep original source images out of git; app assets live in public/images/
 /*.png
+.vercel
