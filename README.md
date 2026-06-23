@@ -58,6 +58,8 @@ If no provider is configured, the API returns a `mailto:` fallback. It never con
 
 Configure phone, email, Google Maps, WhatsApp, Telegram, Booking.com, MyBooking.uz, Instagram, and Facebook in `src/content/contact.ts`. Empty URLs are handled gracefully and not shown as broken public links.
 
+The Google Maps profile, coordinates, directions URL, and map embed are also configured in `src/content/contact.ts`. The current profile link is `https://maps.app.goo.gl/QTJVejTBReA73t3u9`.
+
 ## Admin Demo
 
 Visit `/admin`.

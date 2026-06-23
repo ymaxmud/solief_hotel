@@ -6,7 +6,7 @@ export const siteConfig = {
   demoMode: true,
   showOwnerPitch: true,
   hotelName: "Solief Hotel",
-  canonicalUrl: "https://soliefhotel.uz",
+  canonicalUrl: "https://soliefhotel.vercel.app",
   rating: 4.2,
   reviewCount: 75,
   checkIn: "14:00",

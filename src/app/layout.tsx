@@ -50,6 +50,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       addressCountry: "UZ"
     },
     telephone: siteConfig.contact.phone,
+    hasMap: siteConfig.contact.googleMapsProfileUrl,
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: siteConfig.contact.coordinates.lat,
+      longitude: siteConfig.contact.coordinates.lng
+    },
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: siteConfig.rating,
