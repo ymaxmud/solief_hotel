@@ -18,7 +18,7 @@ export const rooms: Room[] = [
       { en: "Private bathroom", ru: "Собственная ванная", uz: "Alohida hammom" }
     ],
     priceUzs: 449000,
-    priceNote: { en: "Editable demo price", ru: "Демо-цена, можно изменить", uz: "O‘zgartiriladigan demo narx" },
+    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
     imageId: 4
   },
   {
@@ -38,7 +38,7 @@ export const rooms: Room[] = [
       { en: "Private bathroom", ru: "Собственная ванная", uz: "Alohida hammom" }
     ],
     priceUzs: 449000,
-    priceNote: { en: "Editable demo price", ru: "Демо-цена, можно изменить", uz: "O‘zgartiriladigan demo narx" },
+    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
     imageId: 10
   },
   {
@@ -58,7 +58,7 @@ export const rooms: Room[] = [
       { en: "Family-friendly", ru: "Подходит для семьи", uz: "Oilalar uchun qulay" }
     ],
     priceUzs: 599000,
-    priceNote: { en: "Editable demo price", ru: "Демо-цена, можно изменить", uz: "O‘zgartiriladigan demo narx" },
+    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
     imageId: 16
   },
   {
@@ -78,7 +78,7 @@ export const rooms: Room[] = [
       { en: "Extra space", ru: "Больше пространства", uz: "Qo‘shimcha joy" }
     ],
     priceUzs: 749000,
-    priceNote: { en: "Editable demo price", ru: "Демо-цена, можно изменить", uz: "O‘zgartiriladigan demo narx" },
+    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
     imageId: 22
   }
 ];

@@ -23,9 +23,9 @@ export function getChatAnswer(topic: ChatTopic, locale: Locale) {
       uz: `Mehmonxonaga qo‘ng‘iroq: ${contact.phone}.`
     },
     rooms: {
-      en: `Room options in this demo: ${roomList}.`,
-      ru: `Типы номеров в демо: ${roomList}.`,
-      uz: `Demodagi xona turlari: ${roomList}.`
+      en: `Room options: ${roomList}.`,
+      ru: `Типы номеров: ${roomList}.`,
+      uz: `Xona turlari: ${roomList}.`
     },
     booking: {
       en: "Send a booking request and the hotel team will confirm availability. This is not instant confirmation.",

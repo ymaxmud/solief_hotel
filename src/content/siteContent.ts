@@ -3,8 +3,8 @@ import { contact } from "./contact";
 
 export const siteConfig = {
   defaultLocale: "en" as Locale,
-  demoMode: true,
-  showOwnerPitch: true,
+  demoMode: false,
+  showOwnerPitch: false,
   hotelName: "Solief Hotel",
   canonicalUrl: "https://soliefhotel.vercel.app",
   rating: 4.2,

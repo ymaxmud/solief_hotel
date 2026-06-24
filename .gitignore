@@ -22,6 +22,8 @@ pnpm-debug.log*
 # local/editor
 .DS_Store
 *.pem
+test-results/
+tsconfig.tsbuildinfo
 
 # keep original source images out of git; app assets live in public/images/
 /*.png

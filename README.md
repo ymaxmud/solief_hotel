@@ -1,6 +1,6 @@
-# Solief Hotel Website Demo
+# Solief Hotel Website and CRM
 
-Production-quality Next.js demo for Solief Hotel in Tashkent, Uzbekistan. The site is designed to show how a modern direct-booking website can improve trust, presentation, multilingual access, and booking request conversion.
+Production Next.js site and Supabase-backed hotel CRM for Solief Hotel in Tashkent, Uzbekistan.
 
 ## Run
 
@@ -8,17 +8,117 @@ Production-quality Next.js demo for Solief Hotel in Tashkent, Uzbekistan. The si
 npm install
 npm run dev
 npm run build
+npm run lint
+npm run typecheck
+npm test
 ```
 
 ## Images
 
-Place hotel images in `public/images/` as numeric PNG files. This project currently uses the provided files from `1.png` to `35.png`, excluding missing `14.png`.
+Hotel images live in `public/images/` as numeric PNG files. Edit `src/content/images.ts` to set the hero image, categories, priority loading, and alt text. The provided set is missing `14.png`, so it is not referenced.
 
-Edit `src/content/images.ts` to set the hero image, categories, priority loading, and alt text. By default, `/images/2.png` is marked as the hero exterior image.
+## Supabase Setup
 
-## Edit Hotel Data
+1. Create a Supabase Free project.
+2. Run migrations in `supabase/migrations`.
+3. Optionally run `supabase/seed/seed.sql` for development room/staff data.
+4. Add environment variables from `.env.example` to local `.env.local` and Vercel.
+5. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.
 
-Editable hotel facts and links live in:
+Required variables:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SITE_URL=https://soliefhotel.vercel.app
+```
+
+## First Admin
+
+Set:
+
+```bash
+INITIAL_ADMIN_EMAIL=
+INITIAL_ADMIN_PASSWORD=
+```
+
+Then run:
+
+```bash
+npm run create-initial-admin
+```
+
+The script is idempotent and will not duplicate an existing admin.
+
+## Resend Email
+
+Set:
+
+```bash
+RESEND_API_KEY=
+BOOKING_EMAIL_TO=
+BOOKING_EMAIL_CC=
+HOTEL_OWNER_EMAIL=
+```
+
+New public booking requests are always saved first. If Resend is missing or fails, the request remains in Supabase and a `notifications` row records `manual_required` or `failed`.
+
+## WhatsApp
+
+V1 uses click-to-chat only:
+
+```bash
+HOTEL_OWNER_WHATSAPP_E164=
+```
+
+No paid WhatsApp API is required. Automated Meta WhatsApp Cloud API integration is intentionally not enabled in this version.
+
+## Admin CRM
+
+Routes:
+
+- `/admin/login`
+- `/admin/dashboard`
+- `/admin/users`
+- `/admin/staff`
+- `/admin/attendance`
+- `/admin/attendance/qr`
+- `/admin/guests`
+- `/admin/booking-requests`
+- `/admin/rooms`
+- `/admin/stays`
+- `/admin/services`
+- `/admin/reports`
+- `/admin/audit-log`
+
+Roles:
+
+- `admin`
+- `manager`
+- `receptionist`
+
+All mutations verify roles server-side. CRM data is stored in Supabase, not localStorage.
+
+## QR Attendance
+
+QR attendance tokens:
+
+- expire after 60 seconds
+- are hashed in the database
+- are single-use
+- require browser geolocation
+- must be within `NEXT_PUBLIC_ATTENDANCE_RADIUS_METERS` of the hotel coordinates
+
+Manual overrides are admin/manager-only and require a correction reason. Overrides write audit logs.
+
+## Exports
+
+CSV exports are available from `/admin/reports` for attendance, booking requests, service assignments, guests, and stays.
+
+## Public Content
+
+Editable public content lives in:
 
 - `src/content/siteContent.ts`
 - `src/content/contact.ts`
@@ -28,73 +128,22 @@ Editable hotel facts and links live in:
 - `src/content/faq.ts`
 - `src/content/images.ts`
 
-Unconfirmed services and links are marked with comments or placeholder flags.
-
-## Translations
-
-All visible public UI labels are in:
+Translations live in:
 
 - `src/i18n/en.ts`
 - `src/i18n/ru.ts`
 - `src/i18n/uz.ts`
-- `src/i18n/dictionary.ts`
+- `src/i18n/admin.ts`
 
-Default language is configured in `src/content/siteContent.ts`.
+## Vercel
 
-## Booking Email
+Add all variables from `.env.example` in Vercel Project Settings. The app is compatible with Vercel serverless functions.
 
-The booking API route is `src/app/api/booking-request/route.ts`.
+## Owner Confirmation Needed
 
-Environment variables:
-
-```bash
-BOOKING_EMAIL_TO=info@soliefhotel.uz
-EMAIL_PROVIDER=
-```
-
-If no provider is configured, the API returns a `mailto:` fallback. It never confirms bookings; it only prepares or sends a booking request.
-
-## Contact Links
-
-Configure phone, email, Google Maps, WhatsApp, Telegram, Booking.com, MyBooking.uz, Instagram, and Facebook in `src/content/contact.ts`. Empty URLs are handled gracefully and not shown as broken public links.
-
-The Google Maps profile, coordinates, directions URL, and map embed are also configured in `src/content/contact.ts`. The current profile link is `https://maps.app.goo.gl/QTJVejTBReA73t3u9`.
-
-## Admin Demo
-
-Visit `/admin`.
-
-Default development passcode:
-
-```bash
-solief-demo
-```
-
-Override it with:
-
-```bash
-NEXT_PUBLIC_ADMIN_DEMO_PASSCODE=your-passcode
-```
-
-The admin demo saves JSON to `localStorage`, supports import/export/reset, and is intentionally not a production database. Production should connect to a CMS or database.
-
-## Currency
-
-Static demo rates are in `src/lib/currency.ts`. They are demo values only; connect a real exchange-rate API for production.
-
-## Deploy
-
-Use any Next.js-compatible host. Before deployment, set the canonical domain in `src/content/siteContent.ts`, configure environment variables, and confirm official owner details.
-
-## Needs Owner Confirmation
-
-- Official email and domain
-- Official WhatsApp and Telegram links
+- Official email/domain
+- Official WhatsApp/Telegram links
 - Exact room pricing
-- Breakfast details
-- Parking availability
-- Airport transfer availability
-- Restaurant/kitchen details
-- Laundry and non-smoking room details
+- Breakfast, parking, transfer, restaurant/kitchen, laundry details
 - Official booking platform and social links
-- Missing `14.png` asset, if a full 35-image set is required
+- Missing `14.png` if a complete 35-image set is required

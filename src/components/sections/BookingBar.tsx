@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import type { Dictionary } from "@/i18n/dictionary";
 import type { Locale } from "@/types";
 import { rooms } from "@/content/rooms";
+import { contact } from "@/content/contact";
 import { quickBookingSchema, type QuickBookingValues } from "@/lib/schema";
 import { Button } from "@/components/ui/Button";
 
@@ -26,9 +27,9 @@ export function BookingBar({
   const contactOptions = [
     { value: "Phone", label: t.booking.contactPhone },
     { value: "Email", label: t.booking.contactEmail },
-    { value: "WhatsApp", label: t.actions.whatsapp },
-    { value: "Telegram", label: t.actions.telegram }
-  ];
+    contact.whatsappUrl ? { value: "WhatsApp", label: t.actions.whatsapp } : null,
+    contact.telegramUrl ? { value: "Telegram", label: t.actions.telegram } : null
+  ].filter((option): option is { value: string; label: string } => Boolean(option));
   return (
     <section className="sticky top-[72px] z-30 hidden px-4 md:block" aria-label={t.booking.title}>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto grid max-w-7xl grid-cols-[repeat(5,minmax(0,1fr))_auto] gap-2 rounded-lg border border-white/35 bg-treeGreen/82 p-3 shadow-glow backdrop-blur-xl">

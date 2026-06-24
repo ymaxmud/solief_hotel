@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import type { Dictionary } from "@/i18n/dictionary";
 import { bookingSchema, type BookingFormValues, type QuickBookingValues } from "@/lib/schema";
 import { rooms } from "@/content/rooms";
+import { contact } from "@/content/contact";
 import type { Locale } from "@/types";
 import { Button } from "@/components/ui/Button";
 
@@ -20,7 +21,8 @@ export function BookingRequestForm({
   defaults?: Partial<QuickBookingValues>;
 }) {
   const [success, setSuccess] = useState("");
-  const [mailto, setMailto] = useState("");
+  const [reference, setReference] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const {
     register,
     handleSubmit,
@@ -43,14 +45,24 @@ export function BookingRequestForm({
 
   async function onSubmit(data: BookingFormValues) {
     setSuccess("");
-    const response = await fetch("/api/booking-request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    const json = await response.json();
-    if (json.mailto) setMailto(json.mailto);
-    setSuccess(t.booking.success);
+    setReference("");
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/booking-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const json = await response.json();
+      if (!response.ok || !json.ok) {
+        setSubmitError(json.error || "Could not send booking request. Please call the hotel.");
+        return;
+      }
+      setReference(json.reference || "");
+      setSuccess(t.booking.success);
+    } catch {
+      setSubmitError("Could not send booking request. Please call the hotel.");
+    }
   }
 
   const inputClass = "focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white/85 px-3 text-sm text-charcoal";
@@ -58,9 +70,9 @@ export function BookingRequestForm({
   const contactOptions = [
     { value: "Phone", label: t.booking.contactPhone },
     { value: "Email", label: t.booking.contactEmail },
-    { value: "WhatsApp", label: t.actions.whatsapp },
-    { value: "Telegram", label: t.actions.telegram }
-  ];
+    contact.whatsappUrl ? { value: "WhatsApp", label: t.actions.whatsapp } : null,
+    contact.telegramUrl ? { value: "Telegram", label: t.actions.telegram } : null
+  ].filter((option): option is { value: string; label: string } => Boolean(option));
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -101,10 +113,15 @@ export function BookingRequestForm({
           {Object.values(errors).map((error, index) => <p key={index}>{error?.message}</p>)}
         </div>
       ) : null}
+      {submitError ? (
+        <div className="rounded-lg border border-coralBase/25 bg-coralBase/10 p-3 text-sm text-coralBase">
+          {submitError}
+        </div>
+      ) : null}
       {success ? (
         <div className="rounded-lg border border-hotelBlue/25 bg-hotelBlue/10 p-3 text-sm text-greenGray">
           <p>{success}</p>
-          {mailto ? <a className="mt-2 inline-flex items-center gap-2 font-bold text-coralBase" href={mailto}><Mail size={16} /> {t.actions.emailFallback}</a> : null}
+          {reference ? <p className="mt-2 inline-flex items-center gap-2 font-bold text-coralBase"><Mail size={16} /> {reference}</p> : null}
         </div>
       ) : null}
       <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
