@@ -24,6 +24,7 @@ pnpm-debug.log*
 *.pem
 test-results/
 tsconfig.tsbuildinfo
+supabase/.temp/
 
 # keep original source images out of git; app assets live in public/images/
 /*.png
