@@ -41,20 +41,25 @@ export async function sendBookingEmail(reference: string, data: BookingFormValue
   const recipients = getBookingRecipients();
   const notification = buildBookingNotification(reference, data);
   const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.BOOKING_EMAIL_FROM;
 
-  if (!recipients.length || !apiKey) {
+  if (!recipients.length || !apiKey || !from) {
     return {
       status: "manual_required" as const,
       recipients,
       notification,
       providerResponse: null,
-      error: !apiKey ? "RESEND_API_KEY is not configured" : "No booking email recipients configured"
+      error: !apiKey
+        ? "RESEND_API_KEY is not configured"
+        : !from
+          ? "BOOKING_EMAIL_FROM verified sender is not configured"
+          : "No booking email recipients configured"
     };
   }
 
   const resend = new Resend(apiKey);
   const response = await resend.emails.send({
-    from: "Solief Hotel <onboarding@resend.dev>",
+    from,
     to: recipients,
     subject: notification.subject,
     text: notification.body

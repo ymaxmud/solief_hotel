@@ -1,3 +1,4 @@
+import "server-only";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
@@ -26,6 +27,9 @@ export async function createSupabaseServerClient() {
 }
 
 export function createSupabaseServiceClient() {
+  if (typeof window !== "undefined") {
+    throw new Error("Supabase service-role client cannot be created in the browser.");
+  }
   return createClient(
     getRequiredServerEnv("NEXT_PUBLIC_SUPABASE_URL"),
     getRequiredServerEnv("SUPABASE_SERVICE_ROLE_KEY"),

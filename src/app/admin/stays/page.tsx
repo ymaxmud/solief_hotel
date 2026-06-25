@@ -2,18 +2,52 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
+import { AdminMutationForm } from "@/components/admin/AdminMutationForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function StaysPage() {
   const { user, t, service } = await getAdminPageContext();
-  const { data } = await service.from("stays").select("*, guests(full_name), rooms(room_number)").order("created_at", { ascending: false });
+  const [{ data }, { data: guests }, { data: rooms }] = await Promise.all([
+    service.from("stays").select("*, guests(full_name), rooms(room_number)").order("created_at", { ascending: false }).limit(100),
+    service.from("guests").select("id,full_name").order("created_at", { ascending: false }).limit(100),
+    service.from("rooms").select("id,room_number,status").eq("is_active", true).order("room_number")
+  ]);
+  const canManage = user.role === "admin" || user.role === "manager";
+  const guestOptions = (guests || []).map((guest) => ({ value: guest.id, label: guest.full_name }));
+  const roomOptions = (rooms || []).map((room) => ({ value: room.id, label: `${room.room_number} (${room.status})` }));
   return (
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.stays}</h1>
-      <div className="mt-6">
+      <div className="mt-6 grid gap-6">
+        {canManage ? (
+          <AdminCard title={t.create}>
+            <AdminMutationForm endpoint="/api/admin/stays" submitLabel={t.create} savedLabel={t.saved} saveFailedLabel={t.saveFailed} loadingLabel={t.loading} fields={[
+              { name: "guestId", label: t.fullName, options: guestOptions, required: true },
+              { name: "roomId", label: t.room, options: roomOptions },
+              { name: "status", label: t.status, options: ["expected", "checked_in"], required: true },
+              { name: "expectedCheckIn", label: t.checkIn, type: "date" },
+              { name: "expectedCheckOut", label: t.checkOut, type: "date" }
+            ]} />
+          </AdminCard>
+        ) : null}
         <AdminCard title={t.stays}>
-          <SimpleTable headers={[t.fullName, t.room, t.status, t.expected]} emptyLabel={t.noData} rows={(data || []).map((row) => [(row.guests as { full_name?: string } | null)?.full_name || "-", (row.rooms as { room_number?: string } | null)?.room_number || "-", row.status, `${row.expected_check_in || "-"} → ${row.expected_check_out || "-"}`])} />
+          <SimpleTable headers={[t.fullName, t.room, t.status, t.expected, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
+            (row.guests as { full_name?: string } | null)?.full_name || "-",
+            (row.rooms as { room_number?: string } | null)?.room_number || "-",
+            row.status,
+            `${row.expected_check_in || "-"} → ${row.expected_check_out || "-"}`,
+            canManage ? (
+              <div key="actions" className="flex min-w-56 flex-wrap gap-2">
+                <AdminActionButton endpoint="/api/admin/stays" body={{ id: row.id, status: "checked_in" }} label={t.checkIn} />
+                <AdminActionButton endpoint="/api/admin/stays" body={{ id: row.id, status: "checked_out" }} label={t.checkOut} />
+                <AdminActionButton endpoint="/api/admin/stays" body={{ id: row.id, status: "cancelled" }} label={t.cancel} confirm={t.confirmDangerousAction} className="rounded-full bg-charcoal px-3 py-2 text-xs font-bold text-white disabled:opacity-60" />
+                <AdminSelectAction endpoint="/api/admin/stays" id={row.id} field="roomId" options={roomOptions} placeholder={t.room} buttonLabel={t.save} />
+              </div>
+            ) : "-"
+          ])} />
         </AdminCard>
       </div>
     </AdminShell>

@@ -41,6 +41,7 @@ Set:
 ```bash
 INITIAL_ADMIN_EMAIL=
 INITIAL_ADMIN_PASSWORD=
+ALLOW_INITIAL_ADMIN_BOOTSTRAP=false
 ```
 
 Then run:
@@ -49,7 +50,15 @@ Then run:
 npm run create-initial-admin
 ```
 
-The script is idempotent and will not duplicate an existing admin.
+The script is idempotent and will not duplicate an existing admin. In production it refuses to run unless `ALLOW_INITIAL_ADMIN_BOOTSTRAP=true` is explicitly set. It rejects weak/default passwords and never prints the password.
+
+Production operator checklist:
+
+- Rotate the previously shared temporary admin password immediately in Supabase Auth.
+- Enable MFA for privileged Supabase/Auth users where available.
+- Remove `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`, and `ALLOW_INITIAL_ADMIN_BOOTSTRAP` after the first bootstrap.
+- Verify no temporary or demo admin credentials remain active.
+- Use `/admin/users` to deactivate unused users, change roles, and send password reset links.
 
 ## Resend Email
 
@@ -57,12 +66,13 @@ Set:
 
 ```bash
 RESEND_API_KEY=
+BOOKING_EMAIL_FROM=
 BOOKING_EMAIL_TO=
 BOOKING_EMAIL_CC=
 HOTEL_OWNER_EMAIL=
 ```
 
-New public booking requests are always saved first. If Resend is missing or fails, the request remains in Supabase and a `notifications` row records `manual_required` or `failed`.
+`BOOKING_EMAIL_FROM` must be a verified Resend sender/domain for production. New public booking requests are always saved first. If Resend, sender, or recipients are missing, or if email fails, the request remains in Supabase and a `notifications` row records `manual_required` or `failed`.
 
 ## WhatsApp
 
@@ -109,12 +119,30 @@ QR attendance tokens:
 - are single-use
 - require browser geolocation
 - must be within `NEXT_PUBLIC_ATTENDANCE_RADIUS_METERS` of the hotel coordinates
+- require a staff email/phone plus attendance PIN
+- record accuracy, IP, user agent, distance, and anomaly flags
+
+Set or rotate staff attendance PINs from `/admin/staff`. PINs are hashed in Supabase and are never displayed. Browser geolocation is treated as an anti-fraud signal, not proof of identity.
 
 Manual overrides are admin/manager-only and require a correction reason. Overrides write audit logs.
 
+## Supabase Migrations Added
+
+The hardening migration adds:
+
+- atomic `redeem_attendance_qr(...)` RPC
+- atomic `create_public_booking_request(...)` RPC
+- durable `check_public_rate_limit(...)` RPC
+- attendance attempt/anomaly logging
+- staff attendance PIN hash fields
+- app user password-reset/deactivation fields
+- attendance metadata and indexes
+
+Apply migrations before deploying code that calls these RPCs.
+
 ## Exports
 
-CSV exports are available from `/admin/reports` for attendance, booking requests, service assignments, guests, and stays.
+CSV exports are available from `/admin/reports` for attendance, booking requests, service assignments, guests, and stays. Exports are role-checked, audited, row-limited, and neutralize spreadsheet formula injection.
 
 ## Public Content
 

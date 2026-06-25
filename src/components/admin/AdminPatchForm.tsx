@@ -1,18 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { FieldConfig } from "./AdminMutationForm";
 
-export type FieldConfig = {
-  name: string;
-  label: string;
-  type?: string;
-  options?: Array<string | { value: string; label: string }>;
-  required?: boolean;
-};
-
-export function AdminMutationForm({
+export function AdminPatchForm({
   endpoint,
+  id,
   fields,
   submitLabel,
   savedLabel,
@@ -20,6 +14,7 @@ export function AdminMutationForm({
   loadingLabel
 }: {
   endpoint: string;
+  id: string;
   fields: FieldConfig[];
   submitLabel: string;
   savedLabel: string;
@@ -35,13 +30,13 @@ export function AdminMutationForm({
     setLoading(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
-    const body = Object.fromEntries(form.entries());
+    const body = { id, ...Object.fromEntries(form.entries()) };
     const response = await fetch(endpoint, {
-      method: "POST",
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
-    const json = await response.json();
+    const json = await response.json().catch(() => ({}));
     setLoading(false);
     if (!response.ok || !json.ok) {
       setMessage(json.error || saveFailedLabel);
@@ -53,12 +48,12 @@ export function AdminMutationForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
+    <form onSubmit={submit} className="grid min-w-44 gap-2">
       {fields.map((field) => (
-        <label key={field.name} className="grid gap-1 text-sm font-semibold text-greenGray">
+        <label key={field.name} className="grid gap-1 text-xs font-semibold text-greenGray">
           {field.label}
           {field.options ? (
-            <select name={field.name} required={field.required} className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3">
+            <select name={field.name} required={field.required} className="focus-ring min-h-9 rounded-md border border-charcoal/15 bg-white px-2">
               {field.options.map((option) => {
                 const value = typeof option === "string" ? option : option.value;
                 const label = typeof option === "string" ? option : option.label;
@@ -66,16 +61,14 @@ export function AdminMutationForm({
               })}
             </select>
           ) : (
-            <input name={field.name} type={field.type || "text"} required={field.required} className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3" />
+            <input name={field.name} type={field.type || "text"} required={field.required} className="focus-ring min-h-9 rounded-md border border-charcoal/15 bg-white px-2" />
           )}
         </label>
       ))}
-      <div className="md:col-span-2">
-        <button disabled={loading} className="rounded-full bg-coralBase px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
-          {loading ? loadingLabel : submitLabel}
-        </button>
-        {message ? <p className="mt-3 text-sm font-bold text-greenGray">{message}</p> : null}
-      </div>
+      <button disabled={loading} className="rounded-full bg-greenGray px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60">
+        {loading ? loadingLabel : submitLabel}
+      </button>
+      {message ? <p className="text-xs font-bold text-greenGray">{message}</p> : null}
     </form>
   );
 }

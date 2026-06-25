@@ -1,9 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const inserts: Array<{ table: string; payload: unknown }> = [];
+const rpcCalls: Array<{ name: string; payload: unknown }> = [];
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServiceClient: () => ({
+    rpc: (name: string, payload: unknown) => {
+      rpcCalls.push({ name, payload });
+      return {
+        single: async () => {
+          if (name === "check_public_rate_limit") return { data: { ok: true, attempts: 1, retry_after_seconds: 0 }, error: null };
+          if (name === "create_public_booking_request") return { data: { booking_request_id: "booking-id", guest_id: "guest-id", public_reference: "SOL-TEST" }, error: null };
+          return { data: null, error: new Error("unknown rpc") };
+        }
+      };
+    },
     from: (table: string) => ({
       insert: (payload: unknown) => {
         inserts.push({ table, payload });
@@ -29,7 +40,10 @@ vi.mock("@/lib/crm/email", () => ({
 }));
 
 describe("booking request API", () => {
-  beforeEach(() => inserts.length = 0);
+  beforeEach(() => {
+    inserts.length = 0;
+    rpcCalls.length = 0;
+  });
 
   it("saves request and still succeeds if email fails", async () => {
     const { POST } = await import("@/app/api/booking-request/route");
@@ -53,7 +67,9 @@ describe("booking request API", () => {
     const json = await response.json();
     expect(response.status).toBe(200);
     expect(json.ok).toBe(true);
-    expect(inserts.some((item) => item.table === "booking_requests")).toBe(true);
+    expect(rpcCalls.some((item) => item.name === "check_public_rate_limit")).toBe(true);
+    expect(rpcCalls.some((item) => item.name === "create_public_booking_request")).toBe(true);
     expect(inserts.some((item) => item.table === "notifications")).toBe(true);
+    expect(json.bookingRequestId).toBe("booking-id");
   });
 });

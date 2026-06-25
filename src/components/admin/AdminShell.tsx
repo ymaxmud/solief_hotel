@@ -6,6 +6,7 @@ import type { AppUser } from "@/types/crm";
 import { getAdminDictionary } from "@/i18n/admin";
 import { AdminLanguageSwitcher } from "./AdminLanguageSwitcher";
 import { LogoutButton } from "./LogoutButton";
+import { AdminMobileNav } from "./AdminMobileNav";
 
 const links = [
   ["dashboard", "/admin/dashboard"],
@@ -47,9 +48,12 @@ export async function AdminShell({ user, children }: { user: AppUser; children: 
       </aside>
       <div className="lg:pl-72">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-charcoal/10 bg-white/85 px-4 py-3 backdrop-blur">
-          <div>
+          <div className="flex items-center gap-3">
+            <AdminMobileNav links={visibleLinks.map(([key, href]) => ({ href, label: t[key] }))} menuLabel={t.menu} />
+            <div>
             <p className="font-bold">{user.full_name}</p>
             <p className="text-xs uppercase tracking-[0.18em] text-greenGray">{user.role}</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <AdminLanguageSwitcher locale={locale} />

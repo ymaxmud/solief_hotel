@@ -4,11 +4,12 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { AdminDictionary } from "@/i18n/admin";
 
-export function StaffAttendanceClient({ staff, labels }: { staff: Array<{ id: string; full_name: string }>; labels: AdminDictionary }) {
+export function StaffAttendanceClient({ labels }: { labels: AdminDictionary }) {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const purpose = (searchParams.get("purpose") || "check_in") as "check_in" | "check_out";
-  const [staffMemberId, setStaffMemberId] = useState(staff[0]?.id || "");
+  const [staffIdentifier, setStaffIdentifier] = useState("");
+  const [pin, setPin] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,9 +28,11 @@ export function StaffAttendanceClient({ staff, labels }: { staff: Array<{ id: st
           body: JSON.stringify({
             token,
             purpose,
-            staffMemberId,
+            staffIdentifier,
+            pin,
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy
           })
         });
         const json = await response.json();
@@ -49,12 +52,14 @@ export function StaffAttendanceClient({ staff, labels }: { staff: Array<{ id: st
       <h1 className="font-display text-4xl">{labels.staffAttendanceTitle}</h1>
       <p className="mt-2 text-sm text-greenGray">{labels.staffAttendanceNote}</p>
       <label className="mt-6 grid gap-1 text-sm font-bold text-greenGray">
-        {labels.staffProfile}
-        <select value={staffMemberId} onChange={(event) => setStaffMemberId(event.target.value)} className="focus-ring min-h-12 rounded-lg border border-charcoal/15 bg-white px-3">
-          {staff.map((member) => <option key={member.id} value={member.id}>{member.full_name}</option>)}
-        </select>
+        {labels.staffIdentifier}
+        <input value={staffIdentifier} onChange={(event) => setStaffIdentifier(event.target.value)} className="focus-ring min-h-12 rounded-lg border border-charcoal/15 bg-white px-3" autoComplete="username" />
       </label>
-      <button disabled={loading || !token || !staffMemberId} onClick={submit} className="mt-5 w-full rounded-full bg-coralBase px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
+      <label className="mt-4 grid gap-1 text-sm font-bold text-greenGray">
+        {labels.attendancePin}
+        <input value={pin} onChange={(event) => setPin(event.target.value)} className="focus-ring min-h-12 rounded-lg border border-charcoal/15 bg-white px-3" type="password" inputMode="numeric" autoComplete="one-time-code" />
+      </label>
+      <button disabled={loading || !token || !staffIdentifier || !pin} onClick={submit} className="mt-5 w-full rounded-full bg-coralBase px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
         {loading ? labels.loading : purpose}
       </button>
       {message ? <p className="mt-5 rounded-lg bg-white p-4 text-sm font-bold text-greenGray">{message}</p> : null}

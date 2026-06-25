@@ -9,6 +9,14 @@ export const createUserSchema = z.object({
   password: z.string().min(8)
 });
 
+export const userUpdateSchema = z.object({
+  id: z.string().uuid(),
+  role: roleSchema.optional(),
+  isActive: z.boolean().optional(),
+  forcePasswordChange: z.boolean().optional(),
+  resetPassword: z.boolean().optional()
+});
+
 export const staffSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email().optional().or(z.literal("")),
@@ -18,16 +26,29 @@ export const staffSchema = z.object({
   notes: z.string().optional()
 });
 
+export const staffUpdateSchema = z.object({
+  id: z.string().uuid(),
+  fullName: z.string().min(2).optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().optional(),
+  role: roleSchema.optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+  notes: z.string().optional(),
+  attendancePin: z.string().min(6).optional()
+});
+
 export const attendanceTokenSchema = z.object({
   purpose: z.enum(["check_in", "check_out"])
 });
 
 export const qrAttendanceSchema = z.object({
   token: z.string().min(20),
-  staffMemberId: z.string().uuid(),
+  staffIdentifier: z.string().min(3),
+  pin: z.string().min(4),
   purpose: z.enum(["check_in", "check_out"]),
   lat: z.coerce.number(),
-  lng: z.coerce.number()
+  lng: z.coerce.number(),
+  accuracy: z.coerce.number().optional()
 });
 
 export const manualAttendanceSchema = z.object({
@@ -38,8 +59,10 @@ export const manualAttendanceSchema = z.object({
 });
 
 export const bookingUpdateSchema = z.object({
+  id: z.string().uuid(),
   status: z.enum(["new", "contacted", "confirmed", "rejected", "cancelled", "no_show"]).optional(),
-  assignedStaffId: z.string().uuid().nullable().optional()
+  assignedStaffId: z.string().uuid().nullable().optional(),
+  internalNote: z.string().optional()
 });
 
 export const serviceAssignmentSchema = z.object({
@@ -49,5 +72,40 @@ export const serviceAssignmentSchema = z.object({
   bookingRequestId: z.string().uuid().optional().nullable(),
   serviceType: z.enum(["reception", "cleaning", "luggage", "airport_transfer", "maintenance", "complaint", "room_service", "other"]),
   status: z.enum(["open", "in_progress", "done", "cancelled"]).default("open"),
+  notes: z.string().optional()
+});
+
+export const serviceUpdateSchema = z.object({
+  id: z.string().uuid(),
+  staffMemberId: z.string().uuid().optional(),
+  status: z.enum(["open", "in_progress", "done", "cancelled"]).optional(),
+  notes: z.string().optional()
+});
+
+export const staySchema = z.object({
+  guestId: z.string().uuid(),
+  bookingRequestId: z.string().uuid().optional().nullable(),
+  roomId: z.string().uuid().optional().nullable(),
+  status: z.enum(["lead", "expected", "checked_in", "checked_out", "cancelled"]).default("expected"),
+  expectedCheckIn: z.string().optional(),
+  expectedCheckOut: z.string().optional(),
+  adults: z.coerce.number().min(1).default(1),
+  children: z.coerce.number().min(0).default(0),
+  notes: z.string().optional()
+});
+
+export const stayUpdateSchema = z.object({
+  id: z.string().uuid(),
+  roomId: z.string().uuid().nullable().optional(),
+  status: z.enum(["lead", "expected", "checked_in", "checked_out", "cancelled"]).optional(),
+  expectedCheckIn: z.string().optional(),
+  expectedCheckOut: z.string().optional(),
+  notes: z.string().optional()
+});
+
+export const roomUpdateSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["available", "occupied", "cleaning", "maintenance", "out_of_service"]).optional(),
+  cleaningStatus: z.enum(["clean", "dirty", "in_progress", "inspected"]).optional(),
   notes: z.string().optional()
 });

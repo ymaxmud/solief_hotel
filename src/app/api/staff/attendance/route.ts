@@ -3,88 +3,70 @@ import { qrAttendanceSchema } from "@/lib/crm/validation";
 import { hashAttendanceToken, isWithinAttendanceRadius } from "@/lib/crm/attendance";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
+type AttendanceRedeemResult = {
+  ok: boolean;
+  error_code: string | null;
+  attendance_record_id: string | null;
+  status: string | null;
+};
+
 export async function POST(request: Request) {
   const parsed = qrAttendanceSchema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
   const input = parsed.data;
   const service = createSupabaseServiceClient();
   const tokenHash = hashAttendanceToken(input.token);
-
-  const { data: token, error: tokenError } = await service
-    .from("attendance_qr_tokens")
-    .select("*")
-    .eq("token_hash", tokenHash)
-    .eq("purpose", input.purpose)
-    .maybeSingle();
-
-  if (tokenError || !token) return NextResponse.json({ ok: false, error: "Invalid QR token." }, { status: 400 });
-  if (token.used_at) return NextResponse.json({ ok: false, error: "This QR token has already been used." }, { status: 400 });
-  if (new Date(token.expires_at).getTime() < Date.now()) return NextResponse.json({ ok: false, error: "This QR token has expired." }, { status: 400 });
-
   const geo = isWithinAttendanceRadius({ lat: input.lat, lng: input.lng });
-  if (!geo.ok) {
-    return NextResponse.json({ ok: false, error: `Outside attendance radius (${Math.round(geo.distance)}m / ${geo.radius}m).` }, { status: 400 });
-  }
-
-  if (input.purpose === "check_in") {
-    const { data: existing } = await service
-      .from("attendance_records")
-      .select("id")
-      .eq("staff_member_id", input.staffMemberId)
-      .eq("status", "open")
-      .is("check_out_at", null)
-      .maybeSingle();
-    if (existing) return NextResponse.json({ ok: false, error: "This staff member already has an open attendance record." }, { status: 400 });
-
-    const { data, error } = await service
-      .from("attendance_records")
-      .insert({
-        staff_member_id: input.staffMemberId,
-        check_in_at: new Date().toISOString(),
-        check_in_method: "qr",
-        check_in_lat: input.lat,
-        check_in_lng: input.lng,
-        check_in_distance_meters: geo.distance,
-        status: "open"
-      })
-      .select("id")
-      .single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-    await markTokenUsed(service, token.id, input.staffMemberId);
-    return NextResponse.json({ ok: true, attendanceRecordId: data.id, status: "checked_in" });
-  }
-
-  const { data: openRecord } = await service
-    .from("attendance_records")
-    .select("id")
-    .eq("staff_member_id", input.staffMemberId)
-    .eq("status", "open")
-    .is("check_out_at", null)
-    .maybeSingle();
-  if (!openRecord) return NextResponse.json({ ok: false, error: "No open attendance record found for this staff member." }, { status: 400 });
+  const anomalyFlags = buildAnomalyFlags(input.accuracy, geo);
 
   const { data, error } = await service
-    .from("attendance_records")
-    .update({
-      check_out_at: new Date().toISOString(),
-      check_out_method: "qr",
-      check_out_lat: input.lat,
-      check_out_lng: input.lng,
-      check_out_distance_meters: geo.distance,
-      status: "closed"
+    .rpc("redeem_attendance_qr", {
+      p_token_hash: tokenHash,
+      p_purpose: input.purpose,
+      p_staff_identifier: input.staffIdentifier,
+      p_pin: input.pin,
+      p_lat: input.lat,
+      p_lng: input.lng,
+      p_accuracy_meters: input.accuracy ?? null,
+      p_distance_meters: geo.distance,
+      p_radius_meters: geo.radius,
+      p_ip: getClientIp(request),
+      p_user_agent: request.headers.get("user-agent") || null,
+      p_anomaly_flags: anomalyFlags
     })
-    .eq("id", openRecord.id)
-    .select("id")
     .single();
-  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-  await markTokenUsed(service, token.id, input.staffMemberId);
-  return NextResponse.json({ ok: true, attendanceRecordId: data.id, status: "checked_out" });
+
+  if (error) return NextResponse.json({ ok: false, error: "Attendance verification failed." }, { status: 500 });
+  const result = data as AttendanceRedeemResult;
+  if (!result.ok) {
+    return NextResponse.json({ ok: false, error: attendanceErrorMessage(result.error_code), code: result.error_code }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true, attendanceRecordId: result.attendance_record_id, status: result.status, anomalyFlags });
 }
 
-async function markTokenUsed(service: ReturnType<typeof createSupabaseServiceClient>, tokenId: string, staffMemberId: string) {
-  await service
-    .from("attendance_qr_tokens")
-    .update({ used_at: new Date().toISOString(), used_by_staff_id: staffMemberId })
-    .eq("id", tokenId)
-    .is("used_at", null);
+function buildAnomalyFlags(accuracy: number | undefined, geo: { ok: boolean; distance: number; radius: number }) {
+  const flags: string[] = [];
+  if (accuracy == null) flags.push("missing_accuracy");
+  if (accuracy != null && accuracy > 100) flags.push("low_accuracy");
+  if (!geo.ok) flags.push("outside_radius");
+  return flags;
+}
+
+function attendanceErrorMessage(code: string | null) {
+  const messages: Record<string, string> = {
+    invalid_staff_pin: "Staff identifier or PIN is incorrect.",
+    missing_location: "Location is required for QR attendance.",
+    outside_radius: "Attendance location is outside the allowed hotel radius.",
+    duplicate_open_attendance: "This staff member already has an open attendance record.",
+    no_open_attendance: "No open attendance record found for this staff member.",
+    token_used: "This QR token has already been used.",
+    token_expired: "This QR token has expired.",
+    invalid_token: "Invalid QR token."
+  };
+  return messages[code || ""] || "Attendance failed.";
+}
+
+function getClientIp(request: Request) {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
 }
