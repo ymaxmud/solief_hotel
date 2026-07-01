@@ -1,5 +1,5 @@
 export const en = {
-  nav: { rooms: "Rooms", gallery: "Gallery", amenities: "Amenities", location: "Location", reviews: "Reviews", faq: "FAQ", contact: "Contact", book: "Book / Request" },
+  nav: { rooms: "Rooms", gallery: "Gallery", amenities: "Amenities", location: "Location", reviews: "Reviews", faq: "FAQ", contact: "Contact", book: "Book / Request", openMenu: "Open menu", closeMenu: "Close menu", mobileMenu: "Mobile menu" },
   hero: {
     kicker: "Chilanzar district, Tashkent",
     title: "Solief Hotel",

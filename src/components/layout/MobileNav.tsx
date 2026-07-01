@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Dictionary } from "@/i18n/dictionary";
 import { Button } from "@/components/ui/Button";
 
@@ -9,32 +9,72 @@ const links = ["rooms", "gallery", "amenities", "location", "reviews", "faq", "c
 
 export function MobileNav({ t, onBook }: { t: Dictionary; onBook: () => void }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   return (
     <div className="md:hidden">
-      <button className="focus-ring rounded-full bg-white/15 p-2 text-white backdrop-blur" onClick={() => setOpen(true)} aria-label="Open menu">
+      <button className="focus-ring rounded-full bg-white/15 p-2 text-white backdrop-blur" onClick={() => setOpen(true)} aria-label={t.nav.openMenu}>
         <Menu size={22} />
       </button>
       {open ? (
-        <div className="fixed inset-0 z-[90] bg-treeGreen/95 p-5 text-white">
-          <div className="flex items-center justify-between">
-            <p className="font-display text-2xl">Solief Hotel</p>
-            <button className="focus-ring rounded-full bg-white/10 p-2" onClick={() => setOpen(false)} aria-label="Close menu">
-              <X size={22} />
-            </button>
-          </div>
-          <nav className="mt-10 grid gap-3">
-            {links.map((link) => (
-              <a key={link} href={`#${link}`} onClick={() => setOpen(false)} className="rounded-lg border border-white/10 p-4 text-lg">
-                {t.nav[link]}
+        <div className="fixed inset-0 z-[1000] h-dvh overflow-y-auto bg-treeGreen text-white" role="dialog" aria-modal="true" aria-label={t.nav.mobileMenu}>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(144,202,249,0.18),transparent_32%),linear-gradient(180deg,rgba(12,18,15,0.98),rgba(27,31,30,1))]" />
+          <div className="relative min-h-dvh px-5 pb-28 pt-5">
+            <div className="flex items-center justify-between">
+              <p className="font-display text-3xl leading-none">Solief Hotel</p>
+              <button className="focus-ring rounded-full bg-white/12 p-3 text-white shadow-soft backdrop-blur" onClick={() => setOpen(false)} aria-label={t.nav.closeMenu}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <nav className="mt-8 grid gap-2" aria-label={t.nav.mobileMenu}>
+              {links.map((link) => (
+                <a
+                  key={link}
+                  href={`#${link}`}
+                  onClick={() => setOpen(false)}
+                  className="focus-ring rounded-xl border border-white/12 bg-white/[0.06] px-4 py-3.5 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.1]"
+                >
+                  {t.nav[link]}
+                </a>
+              ))}
+            </nav>
+
+            <div className="mt-6 grid gap-3">
+              <Button
+                className="w-full justify-center py-4 text-base"
+                onClick={() => {
+                  setOpen(false);
+                  onBook();
+                }}
+              >
+                {t.nav.book}
+              </Button>
+              <a
+                href="/admin/login"
+                onClick={() => setOpen(false)}
+                className="focus-ring block rounded-xl border border-white/12 bg-white/[0.04] p-3 text-center text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white"
+              >
+                {t.footer.staffPortal}
               </a>
-            ))}
-          </nav>
-          <Button className="mt-6 w-full" onClick={() => { setOpen(false); onBook(); }}>
-            {t.nav.book}
-          </Button>
-          <a href="/admin/login" onClick={() => setOpen(false)} className="mt-4 block rounded-lg border border-white/10 p-3 text-center text-sm font-semibold text-white/65">
-            {t.footer.staffPortal}
-          </a>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>
