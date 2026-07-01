@@ -29,7 +29,12 @@ export function Footer({ t }: { t: Dictionary }) {
         </div>
       </div>
       <div className="mx-auto mt-10 max-w-7xl border-t border-white/10 pt-5 text-xs text-white/50">
-        © {new Date().getFullYear()} Solief Hotel. {contact.address}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span>© {new Date().getFullYear()} Solief Hotel. {contact.address}</span>
+          <a href="/admin/login" className="text-white/55 underline-offset-4 hover:text-white hover:underline">
+            {t.footer.staffPortal}
+          </a>
+        </div>
       </div>
     </footer>
   );

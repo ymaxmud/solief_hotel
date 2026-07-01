@@ -34,7 +34,10 @@ export async function POST(request: Request) {
       is_active: true
     };
     const { error } = await service.from("app_users").insert(row);
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) {
+      await service.auth.admin.deleteUser(created.user.id);
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
     await insertAudit(request, profile.id, "create", "app_users", created.user.id, row);
     return NextResponse.json({ ok: true, data: row });
   });

@@ -11,7 +11,8 @@ export const bookingSchema = z
     roomType: z.string().min(1, "Room type required"),
     language: z.string().min(1, "Preferred language required"),
     contactMethod: z.string().min(1, "Contact method required"),
-    message: z.string().optional()
+    message: z.string().optional(),
+    turnstileToken: z.string().optional()
   })
   .refine((data) => Boolean(data.phone || data.email), {
     message: "Phone or email is required",

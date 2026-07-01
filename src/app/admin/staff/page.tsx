@@ -5,12 +5,29 @@ import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminPatchForm } from "@/components/admin/AdminPatchForm";
+import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
+import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function StaffPage() {
+export default async function StaffPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { user, t, service } = await getAdminPageContext();
-  const { data } = await service.from("staff_members").select("*").order("created_at", { ascending: false });
+  const params = await searchParams;
+  const page = getPage(params);
+  const { from: rangeFrom, to: rangeTo } = getRange(page);
+  const q = getParam(params, "q");
+  const status = getParam(params, "status");
+  let query = service
+    .from("staff_members")
+    .select("id,full_name,email,phone,role,status,attendance_pin_set_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(rangeFrom, rangeTo);
+  if (q) {
+    const term = searchTerm(q);
+    query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%`);
+  }
+  if (status) query = query.eq("status", status);
+  const { data, count } = await query;
   return (
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.staff}</h1>
@@ -34,6 +51,7 @@ export default async function StaffPage() {
           </AdminCard>
         ) : null}
         <AdminCard title={t.staff}>
+          <AdminListControls t={t} search={q} status={status} statusOptions={["active", "inactive"]} showDateFilters={false} />
           <SimpleTable headers={[t.fullName, t.email, t.phone, t.role, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             row.full_name,
             row.email || "-",
@@ -48,6 +66,7 @@ export default async function StaffPage() {
               </div>
             ) : "-"
           ])} />
+          <AdminPagination pathname="/admin/staff" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>
     </AdminShell>

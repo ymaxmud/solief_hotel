@@ -4,17 +4,34 @@ import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { buildWhatsAppBookingLink } from "@/lib/crm/whatsapp";
+import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
+import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function BookingRequestsPage() {
+export default async function BookingRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { user, t, service } = await getAdminPageContext();
-  const [{ data }, { data: staff }] = await Promise.all([
-    service
+  const params = await searchParams;
+  const page = getPage(params);
+  const { from: rangeFrom, to: rangeTo } = getRange(page);
+  const q = getParam(params, "q");
+  const status = getParam(params, "status");
+  const from = getParam(params, "from");
+  const to = getParam(params, "to");
+  let bookingQuery = service
     .from("booking_requests")
-    .select("*, notifications(status,channel,error), assigned_staff:staff_members(full_name)")
-      .order("created_at", { ascending: false })
-      .limit(100),
+    .select("*, notifications(status,channel,error), assigned_staff:staff_members(full_name)", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(rangeFrom, rangeTo);
+  if (q) {
+    const term = searchTerm(q);
+    bookingQuery = bookingQuery.or(`full_name.ilike.%${term}%,phone.ilike.%${term}%,email.ilike.%${term}%,public_reference.ilike.%${term}%`);
+  }
+  if (status) bookingQuery = bookingQuery.eq("status", status);
+  if (from) bookingQuery = bookingQuery.gte("created_at", `${from}T00:00:00.000Z`);
+  if (to) bookingQuery = bookingQuery.lte("created_at", `${to}T23:59:59.999Z`);
+  const [{ data, count }, { data: staff }] = await Promise.all([
+    bookingQuery,
     service.from("staff_members").select("id,full_name").eq("status", "active").order("full_name")
   ]);
   const staffOptions = (staff || []).map((member) => ({ value: member.id, label: member.full_name }));
@@ -23,6 +40,7 @@ export default async function BookingRequestsPage() {
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.bookingRequests}</h1>
       <div className="mt-6">
+        <AdminListControls t={t} search={q} status={status} from={from} to={to} statusOptions={["new", "contacted", "confirmed", "rejected", "cancelled", "no_show"]} />
         <SimpleTable
           headers={[t.reference, t.fullName, t.dates, t.room, t.status, t.emailNotification, t.whatsapp, t.action]}
           emptyLabel={t.noData}
@@ -69,6 +87,7 @@ export default async function BookingRequestsPage() {
             ];
           })}
         />
+        <AdminPagination pathname="/admin/booking-requests" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
       </div>
     </AdminShell>
   );

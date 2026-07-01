@@ -5,13 +5,27 @@ import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminMutationForm } from "@/components/admin/AdminMutationForm";
+import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
+import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function StaysPage() {
+export default async function StaysPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { user, t, service } = await getAdminPageContext();
-  const [{ data }, { data: guests }, { data: rooms }] = await Promise.all([
-    service.from("stays").select("*, guests(full_name), rooms(room_number)").order("created_at", { ascending: false }).limit(100),
+  const params = await searchParams;
+  const page = getPage(params);
+  const { from: rangeFrom, to: rangeTo } = getRange(page);
+  const q = getParam(params, "q");
+  const status = getParam(params, "status");
+  const from = getParam(params, "from");
+  const to = getParam(params, "to");
+  let staysQuery = service.from("stays").select("*, guests(full_name), rooms(room_number)", { count: "exact" }).order("created_at", { ascending: false }).range(rangeFrom, rangeTo);
+  if (status) staysQuery = staysQuery.eq("status", status);
+  if (q) staysQuery = staysQuery.or(`notes.ilike.%${searchTerm(q)}%`);
+  if (from) staysQuery = staysQuery.gte("created_at", `${from}T00:00:00.000Z`);
+  if (to) staysQuery = staysQuery.lte("created_at", `${to}T23:59:59.999Z`);
+  const [{ data, count }, { data: guests }, { data: rooms }] = await Promise.all([
+    staysQuery,
     service.from("guests").select("id,full_name").order("created_at", { ascending: false }).limit(100),
     service.from("rooms").select("id,room_number,status").eq("is_active", true).order("room_number")
   ]);
@@ -34,6 +48,7 @@ export default async function StaysPage() {
           </AdminCard>
         ) : null}
         <AdminCard title={t.stays}>
+          <AdminListControls t={t} search={q} status={status} from={from} to={to} statusOptions={["lead", "expected", "checked_in", "checked_out", "cancelled"]} />
           <SimpleTable headers={[t.fullName, t.room, t.status, t.expected, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             (row.guests as { full_name?: string } | null)?.full_name || "-",
             (row.rooms as { room_number?: string } | null)?.room_number || "-",
@@ -48,6 +63,7 @@ export default async function StaysPage() {
               </div>
             ) : "-"
           ])} />
+          <AdminPagination pathname="/admin/stays" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>
     </AdminShell>

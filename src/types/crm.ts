@@ -20,6 +20,7 @@ export type AppUser = {
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  force_password_change?: boolean;
 };
 
 export type StaffMember = {

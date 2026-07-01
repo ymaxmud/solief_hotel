@@ -5,12 +5,26 @@ import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
+import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
+import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function UsersPage() {
+export default async function UsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { user, t, service } = await getAdminPageContext(["admin"]);
-  const { data } = await service.from("app_users").select("*").order("created_at", { ascending: false });
+  const params = await searchParams;
+  const page = getPage(params);
+  const { from: rangeFrom, to: rangeTo } = getRange(page);
+  const q = getParam(params, "q");
+  const status = getParam(params, "status");
+  let query = service.from("app_users").select("*", { count: "exact" }).order("created_at", { ascending: false }).range(rangeFrom, rangeTo);
+  if (q) {
+    const term = searchTerm(q);
+    query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
+  }
+  if (status === "active") query = query.eq("is_active", true);
+  if (status === "inactive") query = query.eq("is_active", false);
+  const { data, count } = await query;
   return (
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.users}</h1>
@@ -31,6 +45,7 @@ export default async function UsersPage() {
           />
         </AdminCard>
         <AdminCard title={t.users}>
+          <AdminListControls t={t} search={q} status={status} statusOptions={["active", "inactive"]} showDateFilters={false} />
           <SimpleTable headers={[t.email, t.fullName, t.role, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             row.email,
             row.full_name,
@@ -46,6 +61,7 @@ export default async function UsersPage() {
               <AdminActionButton endpoint="/api/admin/users" body={{ id: row.id, resetPassword: true, forcePasswordChange: true }} label={t.resetPassword} confirm={t.confirmDangerousAction} />
             </div>
           ])} />
+          <AdminPagination pathname="/admin/users" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>
     </AdminShell>

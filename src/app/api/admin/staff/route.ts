@@ -3,9 +3,11 @@ import { staffSchema, staffUpdateSchema } from "@/lib/crm/validation";
 import { withRole, insertAudit } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
 
+const staffSelect = "id,full_name,email,phone,role,status,notes,created_at,updated_at,created_by,updated_by,attendance_pin_set_at";
+
 export async function GET(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ service }) => {
-    const { data, error } = await service.from("staff_members").select("*").order("created_at", { ascending: false });
+    const { data, error } = await service.from("staff_members").select(staffSelect).order("created_at", { ascending: false });
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true, data });
   });
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
       created_by: profile.id,
       updated_by: profile.id
     };
-    const { data, error } = await service.from("staff_members").insert(row).select("*").single();
+    const { data, error } = await service.from("staff_members").insert(row).select(staffSelect).single();
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     await insertAudit(request, profile.id, "create", "staff_members", data.id, data);
     return NextResponse.json({ ok: true, data });
@@ -42,7 +44,7 @@ export async function PATCH(request: Request) {
     const parsed = staffUpdateSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
     const input = parsed.data;
-    const { data: before } = await service.from("staff_members").select("*").eq("id", input.id).single();
+    const { data: before } = await service.from("staff_members").select(staffSelect).eq("id", input.id).single();
     const update: Record<string, unknown> = { updated_by: profile.id, updated_at: new Date().toISOString() };
     if (input.fullName !== undefined) update.full_name = input.fullName;
     if (input.email !== undefined) update.email = input.email || null;
@@ -51,9 +53,6 @@ export async function PATCH(request: Request) {
     if (input.status !== undefined) update.status = input.status;
     if (input.notes !== undefined) update.notes = input.notes || null;
 
-    const { data, error } = await service.from("staff_members").update(update).eq("id", input.id).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-
     if (input.attendancePin) {
       const { error: pinError } = await service.rpc("set_staff_attendance_pin", {
         p_staff_member_id: input.id,
@@ -61,6 +60,9 @@ export async function PATCH(request: Request) {
       });
       if (pinError) return NextResponse.json({ ok: false, error: pinError.message }, { status: 400 });
     }
+
+    const { data, error } = await service.from("staff_members").update(update).eq("id", input.id).select(staffSelect).single();
+    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
 
     await insertAudit(request, profile.id, "update", "staff_members", input.id, { before, after: data, pinChanged: Boolean(input.attendancePin) });
     return NextResponse.json({ ok: true, data });

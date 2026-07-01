@@ -10,6 +10,7 @@ import { rooms } from "@/content/rooms";
 import { contact } from "@/content/contact";
 import type { Locale } from "@/types";
 import { Button } from "@/components/ui/Button";
+import { TurnstileWidget } from "./TurnstileWidget";
 
 export function BookingRequestForm({
   t,
@@ -23,6 +24,7 @@ export function BookingRequestForm({
   const [success, setSuccess] = useState("");
   const [reference, setReference] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const {
     register,
     handleSubmit,
@@ -51,7 +53,7 @@ export function BookingRequestForm({
       const response = await fetch("/api/booking-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ ...data, turnstileToken })
       });
       const json = await response.json();
       if (!response.ok || !json.ok) {
@@ -124,6 +126,7 @@ export function BookingRequestForm({
           {reference ? <p className="mt-2 inline-flex items-center gap-2 font-bold text-coralBase"><Mail size={16} /> {reference}</p> : null}
         </div>
       ) : null}
+      <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
       <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
         <Send size={17} /> {t.actions.submit}
       </Button>

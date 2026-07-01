@@ -9,11 +9,21 @@ export async function getCurrentUserProfile() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("app_users")
-    .select("id,email,full_name,role,is_active")
+    .select("id,email,full_name,role,is_active,force_password_change")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (profileError) {
+    const { data: fallbackProfile } = await supabase
+      .from("app_users")
+      .select("id,email,full_name,role,is_active")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!fallbackProfile || !fallbackProfile.is_active) return null;
+    return { ...fallbackProfile, force_password_change: false } as AppUser;
+  }
 
   if (!profile || !profile.is_active) return null;
   return profile as AppUser;
@@ -22,6 +32,7 @@ export async function getCurrentUserProfile() {
 export async function requireUser() {
   const profile = await getCurrentUserProfile();
   if (!profile) redirect("/admin/login");
+  if (profile.force_password_change) redirect("/admin/change-password");
   return profile;
 }
 

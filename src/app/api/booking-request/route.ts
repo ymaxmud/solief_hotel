@@ -25,34 +25,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
   }
 
-  const service = createSupabaseServiceClient();
-  const reference = createBookingReference();
   const booking = parsed.data;
   const ip = getClientIp(request);
-  const fingerprint = [
-    ip,
-    request.headers.get("user-agent") || "",
-    normalizeForLimit(booking.email),
-    normalizeForLimit(booking.phone)
-  ].join("|");
-
-  const { data: rateLimitData, error: rateLimitError } = await service
-    .rpc("check_public_rate_limit", {
-      p_scope: "booking_request",
-      p_identifier: fingerprint,
-      p_max_attempts: 5,
-      p_window_seconds: 60
-    })
-    .single();
-
-  if (rateLimitError) {
-    return NextResponse.json({ ok: false, error: "Could not validate request rate limit." }, { status: 500 });
+  const turnstile = await verifyTurnstile(booking.turnstileToken, ip);
+  if (!turnstile.ok) {
+    return NextResponse.json({ ok: false, error: "Could not verify anti-spam challenge." }, { status: 400 });
   }
 
-  const rateLimit = rateLimitData as RateLimitResult | null;
-  if (rateLimit && !rateLimit.ok) {
+  const service = createSupabaseServiceClient();
+  const reference = createBookingReference();
+  const userAgent = request.headers.get("user-agent") || "";
+  const rateLimit = await checkBookingRateLimits(service, [
+    { scope: "booking_ip", identifier: `${ip}|${userAgent}`, maxAttempts: 5, windowSeconds: 60 },
+    { scope: "booking_ip_hour", identifier: ip, maxAttempts: 20, windowSeconds: 3600 },
+    { scope: "booking_contact", identifier: normalizeContact(booking.email, booking.phone), maxAttempts: 3, windowSeconds: 3600 },
+    { scope: "booking_trip", identifier: `${normalizeForLimit(booking.name)}|${booking.checkIn}|${booking.checkOut}|${booking.roomType}`, maxAttempts: 3, windowSeconds: 3600 }
+  ]);
+
+  if (rateLimit.error) {
+    return NextResponse.json({ ok: false, error: "Could not validate request rate limit." }, { status: 500 });
+  }
+  if (rateLimit.limited) {
     return NextResponse.json(
-      { ok: false, error: "Too many booking requests. Please try again soon.", retryAfterSeconds: rateLimit.retry_after_seconds },
+      { ok: false, error: "Too many booking requests. Please try again soon.", retryAfterSeconds: rateLimit.retryAfterSeconds },
       { status: 429 }
     );
   }
@@ -80,7 +75,7 @@ export async function POST(request: Request) {
   const createdBooking = bookingRequest as BookingRequestResult;
 
   const emailResult = await sendBookingEmail(reference, booking);
-  await service.from("notifications").insert(
+  const { error: notificationError } = await service.from("notifications").insert(
     emailResult.recipients.length
       ? emailResult.recipients.map((recipient) => ({
           channel: "email",
@@ -107,14 +102,44 @@ export async function POST(request: Request) {
           }
         ]
   );
+  if (notificationError) {
+    console.error("Failed to record booking notification", {
+      bookingRequestId: createdBooking.booking_request_id,
+      error: notificationError.message
+    });
+  }
 
   return NextResponse.json({
     ok: true,
     reference,
     bookingRequestId: createdBooking.booking_request_id,
     emailStatus: emailResult.status,
+    notificationLogStatus: notificationError ? "failed" : "recorded",
     whatsappLink: buildWhatsAppBookingLink(reference, booking)
   });
+}
+
+async function checkBookingRateLimits(
+  service: ReturnType<typeof createSupabaseServiceClient>,
+  checks: Array<{ scope: string; identifier: string; maxAttempts: number; windowSeconds: number }>
+) {
+  let retryAfterSeconds = 0;
+  for (const check of checks) {
+    const { data, error } = await service
+      .rpc("check_public_rate_limit", {
+        p_scope: check.scope,
+        p_identifier: check.identifier,
+        p_max_attempts: check.maxAttempts,
+        p_window_seconds: check.windowSeconds
+      })
+      .single();
+    if (error) return { error: true, limited: false, retryAfterSeconds: 0 };
+    const result = data as RateLimitResult | null;
+    if (result && !result.ok) {
+      retryAfterSeconds = Math.max(retryAfterSeconds, result.retry_after_seconds || 0);
+    }
+  }
+  return { error: false, limited: retryAfterSeconds > 0, retryAfterSeconds };
 }
 
 function getClientIp(request: Request) {
@@ -123,4 +148,32 @@ function getClientIp(request: Request) {
 
 function normalizeForLimit(value?: string) {
   return (value || "").trim().toLowerCase();
+}
+
+function normalizeContact(email?: string, phone?: string) {
+  const normalizedEmail = normalizeForLimit(email);
+  const normalizedPhone = (phone || "").replace(/\D/g, "");
+  return normalizedEmail || normalizedPhone || "missing-contact";
+}
+
+async function verifyTurnstile(token: string | undefined, ip: string) {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return { ok: true };
+  if (!token) return { ok: false };
+
+  const form = new FormData();
+  form.set("secret", secret);
+  form.set("response", token);
+  if (ip && ip !== "unknown") form.set("remoteip", ip);
+
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: form
+    });
+    const json = (await response.json()) as { success?: boolean };
+    return { ok: response.ok && Boolean(json.success) };
+  } catch {
+    return { ok: false };
+  }
 }

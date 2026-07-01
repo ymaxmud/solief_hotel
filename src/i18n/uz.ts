@@ -13,5 +13,5 @@ export const uz = {
   contact: { title: "So‘rov yuboring yoki qo‘ng‘iroq qiling", subtitle: "Aniq mavjudlik, xona tafsilotlari va kelish bo‘yicha yordam uchun mehmonxona bilan bog‘laning.", address: "Manzil", phone: "Telefon", email: "Email" },
   chatbot: { title: "Solief yordamchi", intro: "Mehmonxona haqida asosiy ma’lumot bilan yordam beraman.", placeholder: "Tez savol tanlang", fallback: "Asosiy ma’lumot bilan yordam beraman. Aniq mavjudlik uchun mehmonxona bilan bog‘laning.", quick: { check: "Kirish/chiqish", address: "Manzil", phone: "Telefon", rooms: "Xonalar", booking: "Band so‘rovi", map: "Xarita", amenities: "Qulayliklar" } },
   admin: { title: "Admin CRM", passcode: "Parol", login: "Kirish", intro: "Supabase asosidagi production mehmonxona CRM.", hotel: "Mehmonxona", prices: "Xona narxlari", content: "CRM ma’lumotlari", saved: "Saqlandi" },
-  footer: { description: "Toshkentdagi samimiy xizmat va amaliy qulaylikka ega shinam mahalliy mehmonxona.", demo: "Sayt demo konsepti" }
+  footer: { description: "Toshkentdagi samimiy xizmat va amaliy qulaylikka ega shinam mahalliy mehmonxona.", demo: "Sayt demo konsepti", staffPortal: "Xodimlar portali" }
 };

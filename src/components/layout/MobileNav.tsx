@@ -32,6 +32,9 @@ export function MobileNav({ t, onBook }: { t: Dictionary; onBook: () => void }) 
           <Button className="mt-6 w-full" onClick={() => { setOpen(false); onBook(); }}>
             {t.nav.book}
           </Button>
+          <a href="/admin/login" onClick={() => setOpen(false)} className="mt-4 block rounded-lg border border-white/10 p-3 text-center text-sm font-semibold text-white/65">
+            {t.footer.staffPortal}
+          </a>
         </div>
       ) : null}
     </div>

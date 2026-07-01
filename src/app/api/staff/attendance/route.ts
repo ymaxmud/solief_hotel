@@ -10,6 +10,12 @@ type AttendanceRedeemResult = {
   status: string | null;
 };
 
+type RateLimitResult = {
+  ok: boolean;
+  attempts: number;
+  retry_after_seconds: number;
+};
+
 export async function POST(request: Request) {
   const parsed = qrAttendanceSchema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
@@ -18,6 +24,20 @@ export async function POST(request: Request) {
   const tokenHash = hashAttendanceToken(input.token);
   const geo = isWithinAttendanceRadius({ lat: input.lat, lng: input.lng });
   const anomalyFlags = buildAnomalyFlags(input.accuracy, geo);
+  const ip = getClientIp(request) || "unknown";
+  const rateLimit = await checkAttendanceRateLimits(service, [
+    { scope: "attendance_ip", identifier: ip, maxAttempts: 20, windowSeconds: 300 },
+    { scope: "attendance_staff_identifier", identifier: normalizeIdentifier(input.staffIdentifier), maxAttempts: 8, windowSeconds: 300 },
+    { scope: "attendance_token", identifier: tokenHash, maxAttempts: 6, windowSeconds: 60 }
+  ]);
+
+  if (rateLimit.error) return NextResponse.json({ ok: false, error: "Could not validate attendance rate limit." }, { status: 500 });
+  if (rateLimit.limited) {
+    return NextResponse.json(
+      { ok: false, error: "Too many attendance attempts. Please wait and try again.", retryAfterSeconds: rateLimit.retryAfterSeconds },
+      { status: 429 }
+    );
+  }
 
   const { data, error } = await service
     .rpc("redeem_attendance_qr", {
@@ -30,7 +50,7 @@ export async function POST(request: Request) {
       p_accuracy_meters: input.accuracy ?? null,
       p_distance_meters: geo.distance,
       p_radius_meters: geo.radius,
-      p_ip: getClientIp(request),
+      p_ip: ip,
       p_user_agent: request.headers.get("user-agent") || null,
       p_anomaly_flags: anomalyFlags
     })
@@ -43,6 +63,29 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true, attendanceRecordId: result.attendance_record_id, status: result.status, anomalyFlags });
+}
+
+async function checkAttendanceRateLimits(
+  service: ReturnType<typeof createSupabaseServiceClient>,
+  checks: Array<{ scope: string; identifier: string; maxAttempts: number; windowSeconds: number }>
+) {
+  let retryAfterSeconds = 0;
+  for (const check of checks) {
+    const { data, error } = await service
+      .rpc("check_public_rate_limit", {
+        p_scope: check.scope,
+        p_identifier: check.identifier,
+        p_max_attempts: check.maxAttempts,
+        p_window_seconds: check.windowSeconds
+      })
+      .single();
+    if (error) return { error: true, limited: false, retryAfterSeconds: 0 };
+    const result = data as RateLimitResult | null;
+    if (result && !result.ok) {
+      retryAfterSeconds = Math.max(retryAfterSeconds, result.retry_after_seconds || 0);
+    }
+  }
+  return { error: false, limited: retryAfterSeconds > 0, retryAfterSeconds };
 }
 
 function buildAnomalyFlags(accuracy: number | undefined, geo: { ok: boolean; distance: number; radius: number }) {
@@ -69,4 +112,9 @@ function attendanceErrorMessage(code: string | null) {
 
 function getClientIp(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
+}
+
+function normalizeIdentifier(value: string) {
+  const trimmed = value.trim().toLowerCase();
+  return trimmed.includes("@") ? trimmed : trimmed.replace(/\D/g, "") || trimmed;
 }

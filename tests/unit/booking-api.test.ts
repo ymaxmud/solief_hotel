@@ -68,6 +68,7 @@ describe("booking request API", () => {
     expect(response.status).toBe(200);
     expect(json.ok).toBe(true);
     expect(rpcCalls.some((item) => item.name === "check_public_rate_limit")).toBe(true);
+    expect(rpcCalls.filter((item) => item.name === "check_public_rate_limit")).toHaveLength(4);
     expect(rpcCalls.some((item) => item.name === "create_public_booking_request")).toBe(true);
     expect(inserts.some((item) => item.table === "notifications")).toBe(true);
     expect(json.bookingRequestId).toBe("booking-id");

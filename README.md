@@ -74,6 +74,29 @@ HOTEL_OWNER_EMAIL=
 
 `BOOKING_EMAIL_FROM` must be a verified Resend sender/domain for production. New public booking requests are always saved first. If Resend, sender, or recipients are missing, or if email fails, the request remains in Supabase and a `notifications` row records `manual_required` or `failed`.
 
+## Supabase Auth SMTP
+
+Supabase's built-in Auth email sender is rate-limited and should not be used for production password resets/invites. Configure custom SMTP in Supabase Dashboard:
+
+1. Open Supabase Dashboard → Authentication → SMTP Settings.
+2. Enable custom SMTP.
+3. Use a verified provider/domain, for example Resend SMTP.
+4. Send a test email from Supabase.
+5. Keep SMTP credentials in Supabase, not in this repository.
+
+This is separate from `RESEND_API_KEY`, which is used by the app for booking request notifications.
+
+## Public Booking Spam Protection
+
+Public booking requests use durable Supabase-backed rate limits. Optional Cloudflare Turnstile can be enabled with:
+
+```bash
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
+```
+
+When `TURNSTILE_SECRET_KEY` is configured, booking submissions without a valid Turnstile token are rejected server-side.
+
 ## WhatsApp
 
 V1 uses click-to-chat only:
@@ -142,7 +165,7 @@ Apply migrations before deploying code that calls these RPCs.
 
 ## Exports
 
-CSV exports are available from `/admin/reports` for attendance, booking requests, service assignments, guests, and stays. Exports are role-checked, audited, row-limited, and neutralize spreadsheet formula injection.
+CSV exports are available from `/admin/reports` for attendance, booking requests, service assignments, guests, and stays. Use the date/status filters before exporting sensitive data. Exports are role-checked, audited, row-limited, and neutralize spreadsheet formula injection.
 
 ## Public Content
 

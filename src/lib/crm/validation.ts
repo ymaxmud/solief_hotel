@@ -6,7 +6,7 @@ export const createUserSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(2),
   role: roleSchema,
-  password: z.string().min(8)
+  password: z.string().min(12).regex(/[A-Za-z]/).regex(/[0-9]/)
 });
 
 export const userUpdateSchema = z.object({
@@ -15,6 +15,10 @@ export const userUpdateSchema = z.object({
   isActive: z.boolean().optional(),
   forcePasswordChange: z.boolean().optional(),
   resetPassword: z.boolean().optional()
+});
+
+export const changePasswordSchema = z.object({
+  password: z.string().min(12).regex(/[A-Za-z]/).regex(/[0-9]/)
 });
 
 export const staffSchema = z.object({

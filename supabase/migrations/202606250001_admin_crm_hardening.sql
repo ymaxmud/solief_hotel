@@ -63,6 +63,10 @@ create index if not exists attendance_qr_tokens_lookup_idx
 create index if not exists attendance_records_staff_created_idx
   on public.attendance_records(staff_member_id, created_at desc);
 
+create unique index if not exists attendance_one_open_per_staff
+  on public.attendance_records(staff_member_id)
+  where status = 'open' and check_out_at is null;
+
 create index if not exists attendance_records_anomaly_idx
   on public.attendance_records using gin(anomaly_flags);
 
@@ -140,6 +144,7 @@ begin
 
   v_hash := encode(digest(lower(trim(p_identifier)), 'sha256'), 'hex');
   v_since := now() - make_interval(secs => p_window_seconds);
+  perform pg_advisory_xact_lock(hashtextextended(p_scope || ':' || v_hash, 0));
 
   delete from public.public_rate_limits
   where created_at < now() - interval '24 hours';
