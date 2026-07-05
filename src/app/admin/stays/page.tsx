@@ -7,6 +7,7 @@ import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminMutationForm } from "@/components/admin/AdminMutationForm";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
+import { tashkentDayStart, tashkentDayEnd } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,8 @@ export default async function StaysPage({ searchParams }: { searchParams: Promis
   let staysQuery = service.from("stays").select("*, guests(full_name), rooms(room_number)", { count: "exact" }).order("created_at", { ascending: false }).range(rangeFrom, rangeTo);
   if (status) staysQuery = staysQuery.eq("status", status);
   if (q) staysQuery = staysQuery.or(`notes.ilike.%${searchTerm(q)}%`);
-  if (from) staysQuery = staysQuery.gte("created_at", `${from}T00:00:00.000Z`);
-  if (to) staysQuery = staysQuery.lte("created_at", `${to}T23:59:59.999Z`);
+  if (from) staysQuery = staysQuery.gte("created_at", tashkentDayStart(from));
+  if (to) staysQuery = staysQuery.lte("created_at", tashkentDayEnd(to));
   const [{ data, count }, { data: guests }, { data: rooms }] = await Promise.all([
     staysQuery,
     service.from("guests").select("id,full_name").order("created_at", { ascending: false }).limit(100),
@@ -48,7 +49,7 @@ export default async function StaysPage({ searchParams }: { searchParams: Promis
           </AdminCard>
         ) : null}
         <AdminCard title={t.stays}>
-          <AdminListControls t={t} search={q} status={status} from={from} to={to} statusOptions={["lead", "expected", "checked_in", "checked_out", "cancelled"]} />
+          <AdminListControls t={t} search={q} searchLabel={t.searchNotes} status={status} from={from} to={to} statusOptions={["lead", "expected", "checked_in", "checked_out", "cancelled"]} />
           <SimpleTable headers={[t.fullName, t.room, t.status, t.expected, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             (row.guests as { full_name?: string } | null)?.full_name || "-",
             (row.rooms as { room_number?: string } | null)?.room_number || "-",

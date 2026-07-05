@@ -5,6 +5,7 @@ import { buildPageHref } from "@/lib/crm/pagination";
 export function AdminListControls({
   t,
   search,
+  searchLabel,
   status,
   statusOptions = [],
   from,
@@ -13,6 +14,7 @@ export function AdminListControls({
 }: {
   t: AdminDictionary;
   search?: string;
+  searchLabel?: string;
   status?: string;
   statusOptions?: string[];
   from?: string;
@@ -22,7 +24,7 @@ export function AdminListControls({
   return (
     <form className="mb-4 grid gap-3 rounded-lg border border-charcoal/10 bg-white/80 p-3 md:grid-cols-[1fr_auto_auto_auto_auto]">
       <label className="grid gap-1 text-xs font-bold text-greenGray">
-        {t.search}
+        {searchLabel ?? t.search}
         <input name="q" defaultValue={search} className="focus-ring min-h-10 rounded-lg border border-charcoal/15 bg-white px-3 text-sm" />
       </label>
       {statusOptions.length ? (

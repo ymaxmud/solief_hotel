@@ -22,22 +22,27 @@ export function StaffAttendanceClient({ labels }: { labels: AdminDictionary }) {
     setLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const response = await fetch("/api/staff/attendance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            token,
-            purpose,
-            staffIdentifier,
-            pin,
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          })
-        });
-        const json = await response.json();
-        setLoading(false);
-        setMessage(json.ok ? `${labels.success}: ${json.status}` : json.error || labels.attendanceFailed);
+        try {
+          const response = await fetch("/api/staff/attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token,
+              purpose,
+              staffIdentifier,
+              pin,
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              accuracy: position.coords.accuracy
+            })
+          });
+          const json = await response.json().catch(() => ({}));
+          setMessage(json.ok ? `${labels.success}: ${json.status}` : json.error || labels.attendanceFailed);
+        } catch {
+          setMessage(labels.attendanceFailed);
+        } finally {
+          setLoading(false);
+        }
       },
       () => {
         setLoading(false);

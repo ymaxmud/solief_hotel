@@ -19,17 +19,21 @@ export function QrGenerator({
 
   async function generate() {
     setError("");
-    const response = await fetch("/api/admin/attendance/qr-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ purpose })
-    });
-    const json = await response.json();
-    if (!response.ok || !json.ok) {
-      setError(json.error || errorLabel);
-      return;
+    try {
+      const response = await fetch("/api/admin/attendance/qr-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purpose })
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json.ok) {
+        setError(json.error || errorLabel);
+        return;
+      }
+      setQr(json);
+    } catch {
+      setError(errorLabel);
     }
-    setQr(json);
   }
 
   useEffect(() => {

@@ -24,7 +24,11 @@ export function AdminLoginForm({ t }: { t: AdminDictionary }) {
       setError(authError.message);
       return;
     }
-    router.push(searchParams.get("next") || "/admin/dashboard");
+    // Only allow same-origin admin paths as the post-login target to prevent
+    // open-redirect phishing via ?next=https://evil.example.
+    const next = searchParams.get("next");
+    const safeNext = next && /^\/admin(\/|$)/.test(next) ? next : "/admin/dashboard";
+    router.push(safeNext);
     router.refresh();
   }
 

@@ -26,18 +26,23 @@ export function AdminActionButton({
     if (confirm && !window.confirm(confirm)) return;
     setLoading(true);
     setError("");
-    const response = await fetch(endpoint, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const json = await response.json().catch(() => ({}));
-    setLoading(false);
-    if (!response.ok || !json.ok) {
-      setError(json.error || "Action failed");
-      return;
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json.ok) {
+        setError(json.error || "Action failed");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Action failed");
+    } finally {
+      setLoading(false);
     }
-    router.refresh();
   }
 
   return (

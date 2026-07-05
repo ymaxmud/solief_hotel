@@ -10,7 +10,8 @@ export function AdminSelectAction({
   field,
   options,
   placeholder,
-  buttonLabel
+  buttonLabel,
+  confirm
 }: {
   endpoint: string;
   method?: "POST" | "PATCH";
@@ -19,6 +20,7 @@ export function AdminSelectAction({
   options: Array<{ value: string; label: string }>;
   placeholder: string;
   buttonLabel: string;
+  confirm?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState("");
@@ -27,21 +29,27 @@ export function AdminSelectAction({
 
   async function submit() {
     if (!value) return;
+    if (confirm && !window.confirm(confirm)) return;
     setLoading(true);
     setError("");
-    const response = await fetch(endpoint, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...(id ? { id } : {}), [field]: value })
-    });
-    const json = await response.json().catch(() => ({}));
-    setLoading(false);
-    if (!response.ok || !json.ok) {
-      setError(json.error || "Action failed");
-      return;
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...(id ? { id } : {}), [field]: value })
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json.ok) {
+        setError(json.error || "Action failed");
+        return;
+      }
+      setValue("");
+      router.refresh();
+    } catch {
+      setError("Action failed");
+    } finally {
+      setLoading(false);
     }
-    setValue("");
-    router.refresh();
   }
 
   return (

@@ -9,6 +9,7 @@ export type FieldConfig = {
   type?: string;
   options?: Array<string | { value: string; label: string }>;
   required?: boolean;
+  placeholder?: string;
 };
 
 export function AdminMutationForm({
@@ -32,24 +33,34 @@ export function AdminMutationForm({
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formEl = event.currentTarget;
     setLoading(true);
     setMessage("");
-    const form = new FormData(event.currentTarget);
-    const body = Object.fromEntries(form.entries());
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const json = await response.json();
-    setLoading(false);
-    if (!response.ok || !json.ok) {
-      setMessage(json.error || saveFailedLabel);
-      return;
+    const form = new FormData(formEl);
+    // Drop empty values so unselected optional fields (e.g. an optional room
+    // picker showing the "—" placeholder) are omitted rather than sent as ""
+    // — an empty string fails server-side UUID/enum validation. Required fields
+    // are enforced by the browser before submit, so they are never empty here.
+    const body = Object.fromEntries([...form.entries()].filter(([, value]) => value !== ""));
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json.ok) {
+        setMessage(json.error || saveFailedLabel);
+        return;
+      }
+      setMessage(savedLabel);
+      formEl.reset();
+      router.refresh();
+    } catch {
+      setMessage(saveFailedLabel);
+    } finally {
+      setLoading(false);
     }
-    setMessage(savedLabel);
-    event.currentTarget.reset();
-    router.refresh();
   }
 
   return (
@@ -58,7 +69,15 @@ export function AdminMutationForm({
         <label key={field.name} className="grid gap-1 text-sm font-semibold text-greenGray">
           {field.label}
           {field.options ? (
-            <select name={field.name} required={field.required} className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3">
+            <select
+              name={field.name}
+              required={field.required}
+              defaultValue=""
+              className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3"
+            >
+              <option value="" disabled={field.required}>
+                {field.placeholder ?? "—"}
+              </option>
               {field.options.map((option) => {
                 const value = typeof option === "string" ? option : option.value;
                 const label = typeof option === "string" ? option : option.label;

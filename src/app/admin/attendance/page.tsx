@@ -3,6 +3,7 @@ import { AdminCard } from "@/components/admin/AdminCard";
 import { AdminMutationForm } from "@/components/admin/AdminMutationForm";
 import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
+import { formatTashkent } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +30,8 @@ export default async function AttendancePage() {
         <AdminCard title={t.attendanceHistory}>
           <SimpleTable headers={[t.staff, t.checkIn, t.checkOut, t.status, t.anomalies]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             (row.staff_members as { full_name?: string } | null)?.full_name || row.staff_member_id,
-            row.check_in_at || "-",
-            row.check_out_at || "-",
+            formatTashkent(row.check_in_at),
+            formatTashkent(row.check_out_at),
             row.status,
             Array.isArray(row.anomaly_flags) && row.anomaly_flags.length ? row.anomaly_flags.join(", ") : "-"
           ])} />
@@ -42,7 +43,7 @@ export default async function AttendancePage() {
               row.purpose || "-",
               row.success ? t.success : t.attendanceFailed,
               row.error_code || (Array.isArray(row.anomaly_flags) ? row.anomaly_flags.join(", ") : "-"),
-              row.created_at
+              formatTashkent(row.created_at)
             ])} />
           </AdminCard>
         </div>

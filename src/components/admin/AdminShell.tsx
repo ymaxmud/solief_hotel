@@ -7,6 +7,7 @@ import { getAdminDictionary } from "@/i18n/admin";
 import { AdminLanguageSwitcher } from "./AdminLanguageSwitcher";
 import { LogoutButton } from "./LogoutButton";
 import { AdminMobileNav } from "./AdminMobileNav";
+import { AdminSidebarLink } from "./AdminSidebarLink";
 
 const links = [
   ["dashboard", "/admin/dashboard"],
@@ -40,9 +41,7 @@ export async function AdminShell({ user, children }: { user: AppUser; children: 
         <p className="mt-2 text-sm text-white/65">{t.protected}</p>
         <nav className="mt-8 grid gap-1">
           {visibleLinks.map(([key, href]) => (
-            <Link key={href} href={href} className="rounded-lg px-3 py-2 text-sm font-semibold text-white/78 hover:bg-white/10 hover:text-white">
-              {t[key]}
-            </Link>
+            <AdminSidebarLink key={href} href={href} label={t[key]} />
           ))}
         </nav>
       </aside>

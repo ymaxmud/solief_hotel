@@ -52,7 +52,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
             row.role,
             row.is_active ? t.active : t.inactive,
             <div key="actions" className="flex min-w-56 flex-wrap gap-2">
-              <AdminSelectAction endpoint="/api/admin/users" id={row.id} field="role" options={["admin", "manager", "receptionist"].map((value) => ({ value, label: value }))} placeholder={t.role} buttonLabel={t.save} />
+              <AdminSelectAction endpoint="/api/admin/users" id={row.id} field="role" options={["admin", "manager", "receptionist"].map((value) => ({ value, label: value }))} placeholder={t.role} buttonLabel={t.save} confirm={t.confirmDangerousAction} />
               {row.is_active ? (
                 <AdminActionButton endpoint="/api/admin/users" body={{ id: row.id, isActive: false }} label={t.deactivate} confirm={t.confirmDangerousAction} className="rounded-full bg-charcoal px-3 py-2 text-xs font-bold text-white disabled:opacity-60" />
               ) : (

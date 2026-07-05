@@ -2,12 +2,13 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
+import { tashkentToday, tashkentDayStart, formatTashkent } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const { user, t, service } = await getAdminPageContext();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = tashkentToday();
   const [
     bookingsToday,
     checkedInStaff,
@@ -17,7 +18,7 @@ export default async function DashboardPage() {
     latestAttendance,
     rooms
   ] = await Promise.all([
-    service.from("booking_requests").select("id", { count: "exact", head: true }).gte("created_at", `${today}T00:00:00Z`),
+    service.from("booking_requests").select("id", { count: "exact", head: true }).gte("created_at", tashkentDayStart(today)),
     service.from("attendance_records").select("id", { count: "exact", head: true }).eq("status", "open").is("check_out_at", null),
     service.from("stays").select("id", { count: "exact", head: true }).eq("status", "checked_in"),
     service.from("service_assignments").select("id", { count: "exact", head: true }).in("status", ["open", "in_progress"]),
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
           <SimpleTable
             headers={[t.staff, t.checkIn]}
             emptyLabel={t.noData}
-            rows={(latestAttendance.data || []).map((row) => [(row.staff_members as { full_name?: string } | null)?.full_name || "-", row.check_in_at || "-"])}
+            rows={(latestAttendance.data || []).map((row) => [(row.staff_members as { full_name?: string } | null)?.full_name || "-", formatTashkent(row.check_in_at)])}
           />
         </AdminCard>
       </div>

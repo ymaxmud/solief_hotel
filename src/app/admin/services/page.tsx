@@ -7,6 +7,7 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
+import { tashkentDayStart, tashkentDayEnd } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -25,15 +26,25 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
     const term = searchTerm(q);
     servicesQuery = servicesQuery.or(`notes.ilike.%${term}%`);
   }
-  if (from) servicesQuery = servicesQuery.gte("created_at", `${from}T00:00:00.000Z`);
-  if (to) servicesQuery = servicesQuery.lte("created_at", `${to}T23:59:59.999Z`);
-  const [{ data, count }, { data: guests }, { data: staff }] = await Promise.all([
+  if (from) servicesQuery = servicesQuery.gte("created_at", tashkentDayStart(from));
+  if (to) servicesQuery = servicesQuery.lte("created_at", tashkentDayEnd(to));
+  const [{ data, count }, { data: checkedInStays }, { data: staff }] = await Promise.all([
     servicesQuery,
-    service.from("guests").select("id,full_name").order("created_at", { ascending: false }).limit(100),
+    service.from("stays").select("id,guest_id,guests(full_name)").eq("status", "checked_in").order("check_in_at", { ascending: false }).limit(100),
     service.from("staff_members").select("id,full_name").eq("status", "active").order("full_name")
   ]);
   const canManage = user.role === "admin" || user.role === "manager";
-  const guestOptions = (guests || []).map((guest) => ({ value: guest.id, label: guest.full_name }));
+  const guestOptions = Array.from(
+    new Map(
+      (checkedInStays || []).map((stay) => [
+        stay.guest_id,
+        {
+          value: stay.guest_id,
+          label: (stay.guests as { full_name?: string } | null)?.full_name || stay.guest_id
+        }
+      ])
+    ).values()
+  );
   const staffOptions = (staff || []).map((member) => ({ value: member.id, label: member.full_name }));
   return (
     <AdminShell user={user}>
@@ -41,17 +52,21 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
       <div className="mt-6 grid gap-6">
         {canManage ? (
           <AdminCard title={t.create}>
-            <AdminMutationForm endpoint="/api/admin/services" submitLabel={t.create} savedLabel={t.saved} saveFailedLabel={t.saveFailed} loadingLabel={t.loading} fields={[
-              { name: "guestId", label: t.exactGuestServed, options: guestOptions, required: true },
-              { name: "staffMemberId", label: t.staff, options: staffOptions, required: true },
-              { name: "serviceType", label: t.serviceType, options: ["reception", "cleaning", "luggage", "airport_transfer", "maintenance", "complaint", "room_service", "other"], required: true },
-              { name: "status", label: t.status, options: ["open", "in_progress"], required: true },
-              { name: "notes", label: t.notes }
-            ]} />
+            {guestOptions.length === 0 ? (
+              <p className="rounded-lg border border-charcoal/10 bg-warmSand/40 p-4 text-sm text-greenGray">{t.noCheckedInGuests}</p>
+            ) : (
+              <AdminMutationForm endpoint="/api/admin/services" submitLabel={t.create} savedLabel={t.saved} saveFailedLabel={t.saveFailed} loadingLabel={t.loading} fields={[
+                { name: "guestId", label: t.exactGuestServed, options: guestOptions, required: true },
+                { name: "staffMemberId", label: t.staff, options: staffOptions, required: true },
+                { name: "serviceType", label: t.serviceType, options: ["reception", "cleaning", "luggage", "airport_transfer", "maintenance", "complaint", "room_service", "other"], required: true },
+                { name: "status", label: t.status, options: ["open", "in_progress"], required: true },
+                { name: "notes", label: t.notes }
+              ]} />
+            )}
           </AdminCard>
         ) : null}
-        <AdminCard title={t.exactGuestServed}>
-          <AdminListControls t={t} search={q} status={status} from={from} to={to} statusOptions={["open", "in_progress", "done", "cancelled"]} />
+        <AdminCard title={t.services}>
+          <AdminListControls t={t} search={q} searchLabel={t.searchNotes} status={status} from={from} to={to} statusOptions={["open", "in_progress", "done", "cancelled"]} />
           <SimpleTable headers={[t.exactGuestServed, t.staff, t.serviceType, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             (row.guests as { full_name?: string } | null)?.full_name || "-",
             (row.staff_members as { full_name?: string } | null)?.full_name || "-",

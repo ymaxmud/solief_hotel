@@ -27,24 +27,30 @@ export function AdminPatchForm({
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formEl = event.currentTarget;
     setLoading(true);
     setMessage("");
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formEl);
     const body = { id, ...Object.fromEntries(form.entries()) };
-    const response = await fetch(endpoint, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const json = await response.json().catch(() => ({}));
-    setLoading(false);
-    if (!response.ok || !json.ok) {
-      setMessage(json.error || saveFailedLabel);
-      return;
+    try {
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json.ok) {
+        setMessage(json.error || saveFailedLabel);
+        return;
+      }
+      setMessage(savedLabel);
+      formEl.reset();
+      router.refresh();
+    } catch {
+      setMessage(saveFailedLabel);
+    } finally {
+      setLoading(false);
     }
-    setMessage(savedLabel);
-    event.currentTarget.reset();
-    router.refresh();
   }
 
   return (

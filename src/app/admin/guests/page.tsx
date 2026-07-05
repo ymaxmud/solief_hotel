@@ -5,6 +5,7 @@ import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
+import { tashkentDayStart, tashkentDayEnd } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,8 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
     const term = searchTerm(q);
     query = query.or(`full_name.ilike.%${term}%,phone.ilike.%${term}%,email.ilike.%${term}%`);
   }
-  if (from) query = query.gte("created_at", `${from}T00:00:00.000Z`);
-  if (to) query = query.lte("created_at", `${to}T23:59:59.999Z`);
+  if (from) query = query.gte("created_at", tashkentDayStart(from));
+  if (to) query = query.lte("created_at", tashkentDayEnd(to));
   const { data, count } = await query;
   return (
     <AdminShell user={user}>

@@ -6,6 +6,7 @@ import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { buildWhatsAppBookingLink } from "@/lib/crm/whatsapp";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
+import { tashkentDayStart, tashkentDayEnd } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,8 @@ export default async function BookingRequestsPage({ searchParams }: { searchPara
     bookingQuery = bookingQuery.or(`full_name.ilike.%${term}%,phone.ilike.%${term}%,email.ilike.%${term}%,public_reference.ilike.%${term}%`);
   }
   if (status) bookingQuery = bookingQuery.eq("status", status);
-  if (from) bookingQuery = bookingQuery.gte("created_at", `${from}T00:00:00.000Z`);
-  if (to) bookingQuery = bookingQuery.lte("created_at", `${to}T23:59:59.999Z`);
+  if (from) bookingQuery = bookingQuery.gte("created_at", tashkentDayStart(from));
+  if (to) bookingQuery = bookingQuery.lte("created_at", tashkentDayEnd(to));
   const [{ data, count }, { data: staff }] = await Promise.all([
     bookingQuery,
     service.from("staff_members").select("id,full_name").eq("status", "active").order("full_name")
@@ -64,7 +65,7 @@ export default async function BookingRequestsPage({ searchParams }: { searchPara
               row.room_type,
               <span key="status" className="font-bold">{row.status}</span>,
               ((row.notifications || []) as Array<{ status: string }>).map((n) => n.status).join(", ") || "-",
-              whatsappLink ? <a key="wa" className="font-bold text-coralBase" href={whatsappLink} target="_blank">{t.whatsapp}</a> : "-",
+              whatsappLink ? <a key="wa" className="font-bold text-coralBase" href={whatsappLink} target="_blank" rel="noopener noreferrer">{t.whatsapp}</a> : "-",
               <div key="actions" className="flex min-w-64 flex-wrap gap-2">
                 <AdminActionButton endpoint="/api/admin/booking-requests" body={{ id: row.id, status: "contacted" }} label={t.markContacted} />
                 {canManage ? (
