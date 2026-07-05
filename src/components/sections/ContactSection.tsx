@@ -19,7 +19,7 @@ export function ContactSection({ t, locale }: { t: Dictionary; locale: Locale })
             <div className="mt-6 grid gap-4 text-white/80">
               <a href={`tel:${contact.phone.replaceAll(" ", "")}`} className="inline-flex items-center gap-3"><Phone /> {contact.phone}</a>
               <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-3"><Mail /> {contact.email}</a>
-              <a href={contact.googleMapsUrl} target="_blank" className="inline-flex items-center gap-3"><MapPin /> {contact.address}</a>
+              <a href={contact.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3"><MapPin /> {contact.address}</a>
             </div>
             <div className="mt-8 flex flex-wrap gap-2">
               <ButtonLink href={contact.googleMapsUrl} target="_blank">{t.actions.map}</ButtonLink>

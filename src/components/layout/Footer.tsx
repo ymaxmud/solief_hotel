@@ -16,7 +16,7 @@ export function Footer({ t }: { t: Dictionary }) {
           <a className="inline-flex items-center gap-2 hover:text-white" href={`tel:${contact.phone.replaceAll(" ", "")}`}>
             <Phone size={16} /> {contact.phone}
           </a>
-          <a className="inline-flex items-center gap-2 hover:text-white" href={contact.googleMapsUrl} target="_blank">
+          <a className="inline-flex items-center gap-2 hover:text-white" href={contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
             <MapPin size={16} /> {contact.address}
           </a>
         </div>

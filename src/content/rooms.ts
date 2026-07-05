@@ -19,7 +19,7 @@ export const rooms: Room[] = [
     ],
     priceUzs: 449000,
     priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 4
+    imageId: 30
   },
   {
     id: "standard-twin",
@@ -39,7 +39,7 @@ export const rooms: Room[] = [
     ],
     priceUzs: 449000,
     priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 10
+    imageId: 23
   },
   {
     id: "standard-triple",
@@ -59,7 +59,7 @@ export const rooms: Room[] = [
     ],
     priceUzs: 599000,
     priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 16
+    imageId: 3
   },
   {
     id: "family-quadruple",
@@ -79,6 +79,6 @@ export const rooms: Room[] = [
     ],
     priceUzs: 749000,
     priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 22
+    imageId: 27
   }
 ];

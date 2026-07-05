@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/content/siteContent";
+
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-sans",
+  display: "swap"
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-display",
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.canonicalUrl),
@@ -21,7 +34,7 @@ export const metadata: Metadata = {
       "Comfortable rooms, warm service, easy booking request, and convenient location in Chilanzar district.",
     url: siteConfig.canonicalUrl,
     siteName: "Solief Hotel",
-    images: [{ url: "/images/2.png", width: 2075, height: 1018, alt: "Solief Hotel exterior" }],
+    images: [{ url: "/og.jpg", width: 1200, height: 588, alt: "Solief Hotel exterior in Chilanzar district, Tashkent" }],
     locale: "en_US",
     type: "website"
   },
@@ -29,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Solief Hotel Tashkent",
     description: "A cozy stay in Tashkent with warm hospitality and easy booking requests.",
-    images: ["/images/2.png"]
+    images: ["/og.jpg"]
   },
   robots: {
     index: true,
@@ -67,8 +80,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>
+        <a
+          href="#top"
+          className="focus-ring sr-only z-[100] rounded-full bg-coralBase px-4 py-2 text-sm font-bold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        >
+          Skip to content
+        </a>
         {children}
         <script
           type="application/ld+json"

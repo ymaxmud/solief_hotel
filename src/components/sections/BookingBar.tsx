@@ -30,6 +30,8 @@ export function BookingBar({
     contact.whatsappUrl ? { value: "WhatsApp", label: t.actions.whatsapp } : null,
     contact.telegramUrl ? { value: "Telegram", label: t.actions.telegram } : null
   ].filter((option): option is { value: string; label: string } => Boolean(option));
+  const errorMessage = errors.checkOut ? t.booking.dateOrder : Object.keys(errors).length ? t.booking.checkFields : "";
+
   return (
     <section className="sticky top-[72px] z-30 hidden px-4 md:block" aria-label={t.booking.title}>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto grid max-w-7xl grid-cols-[repeat(5,minmax(0,1fr))_auto] gap-2 rounded-lg border border-white/35 bg-treeGreen/82 p-3 shadow-glow backdrop-blur-xl">
@@ -43,7 +45,7 @@ export function BookingBar({
           {contactOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
         <Button type="submit" className="px-4"><CalendarCheck size={17} /> {t.booking.openForm}</Button>
-        {Object.keys(errors).length ? <p className="col-span-full text-xs text-warmSand">{t.booking.noInstant}</p> : null}
+        {errorMessage ? <p className="col-span-full text-xs font-bold text-warmSand">{errorMessage}</p> : null}
       </form>
     </section>
   );

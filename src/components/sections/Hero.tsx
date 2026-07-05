@@ -15,15 +15,15 @@ export function Hero({ t, locale, onBook }: { t: Dictionary; locale: Locale; onB
   return (
     <section id="top" className="relative min-h-screen overflow-hidden bg-treeGreen text-white">
       <Image src={heroImage.src} alt={heroImage.alt[locale]} fill priority sizes="100vw" className="object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-r from-treeGreen/88 via-treeGreen/48 to-hotelBlue/24" />
-      <div className="absolute inset-0 bg-gradient-to-t from-treeGreen via-transparent to-treeGreen/24" />
+      <div className="absolute inset-0 bg-gradient-to-r from-treeGreen/88 via-treeGreen/55 to-treeGreen/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-treeGreen/85 via-transparent to-treeGreen/30" />
       <Ornament className="absolute right-[-8rem] top-24 h-80 w-80 opacity-25" />
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center px-4 pb-20 pt-28">
         <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="max-w-4xl">
           <p className="mb-4 text-xs font-bold uppercase tracking-[0.26em] text-warmSand">{t.hero.kicker}</p>
-          <h1 className="font-display text-6xl leading-none md:text-8xl">{t.hero.title}</h1>
-          <p className="mt-5 max-w-2xl font-display text-3xl leading-tight text-softWhite md:text-5xl">{t.hero.subtitle}</p>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-white/82">{t.hero.body}</p>
+          <h1 className="font-display text-6xl leading-none [text-shadow:0_2px_24px_rgba(12,18,15,0.55)] md:text-8xl">{t.hero.title}</h1>
+          <p className="mt-5 max-w-2xl font-display text-3xl leading-tight text-softWhite [text-shadow:0_2px_18px_rgba(12,18,15,0.5)] md:text-5xl">{t.hero.subtitle}</p>
+          <p className="mt-5 max-w-xl text-lg leading-8 text-white/90 [text-shadow:0_1px_12px_rgba(12,18,15,0.5)]">{t.hero.body}</p>
           <div className="mt-7 flex flex-wrap gap-2">
             {[t.hero.rating, t.hero.reviews, t.hero.checkIn, t.hero.checkOut, t.hero.district].map((badge) => (
               <span key={badge} className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-2 text-sm backdrop-blur">

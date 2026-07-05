@@ -57,13 +57,13 @@ export function BookingRequestForm({
       });
       const json = await response.json();
       if (!response.ok || !json.ok) {
-        setSubmitError(json.error || "Could not send booking request. Please call the hotel.");
+        setSubmitError(json.error || t.booking.requestFailed);
         return;
       }
       setReference(json.reference || "");
       setSuccess(t.booking.success);
     } catch {
-      setSubmitError("Could not send booking request. Please call the hotel.");
+      setSubmitError(t.booking.requestFailed);
     }
   }
 
@@ -112,7 +112,8 @@ export function BookingRequestForm({
       </label>
       {Object.values(errors).length ? (
         <div className="rounded-lg border border-coralBase/25 bg-coralBase/10 p-3 text-sm text-coralBase">
-          {Object.values(errors).map((error, index) => <p key={index}>{error?.message}</p>)}
+          <p>{t.booking.checkFields}</p>
+          {errors.checkOut ? <p className="mt-1">{t.booking.dateOrder}</p> : null}
         </div>
       ) : null}
       {submitError ? (

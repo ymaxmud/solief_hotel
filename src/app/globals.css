@@ -3,8 +3,6 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: "Inter";
-  --font-display: "Playfair Display";
   color-scheme: light;
 }
 

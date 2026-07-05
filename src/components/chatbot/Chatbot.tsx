@@ -30,7 +30,7 @@ export function Chatbot({ t, locale, onBook }: { t: Dictionary; locale: Locale; 
             <p className="font-bold">{t.chatbot.title}</p>
             <button className="focus-ring rounded-full p-1" onClick={() => setOpen(false)} aria-label={t.actions.close}><X size={18} /></button>
           </div>
-          <div className="max-h-72 space-y-3 overflow-y-auto p-4">
+          <div className="max-h-72 space-y-3 overflow-y-auto p-4" aria-live="polite">
             {messages.map((message, index) => (
               <div key={index} className={`rounded-lg p-3 text-sm ${message.from === "bot" ? "bg-white text-greenGray" : "ml-8 bg-hotelBlue text-white"}`}>{message.text}</div>
             ))}
@@ -39,9 +39,9 @@ export function Chatbot({ t, locale, onBook }: { t: Dictionary; locale: Locale; 
             {topics.map((topic) => <button key={topic} className="focus-ring rounded-full bg-softWhite px-3 py-2 text-xs font-bold text-greenGray" onClick={() => ask(topic)}>{t.chatbot.quick[topic]}</button>)}
           </div>
           <div className="grid grid-cols-3 gap-2 p-3 pt-0">
-            <a className="focus-ring rounded-full bg-treeGreen px-3 py-2 text-center text-xs font-bold text-white" href={`tel:${contact.phone.replaceAll(" ", "")}`}><Phone size={15} className="mx-auto" /></a>
+            <a className="focus-ring rounded-full bg-treeGreen px-3 py-2 text-center text-xs font-bold text-white" href={`tel:${contact.phone.replaceAll(" ", "")}`} aria-label={t.actions.call}><Phone size={15} className="mx-auto" /></a>
             <button className="focus-ring rounded-full bg-coralBase px-3 py-2 text-xs font-bold text-white" onClick={onBook}>{t.nav.book}</button>
-            <a className="focus-ring rounded-full bg-hotelBlue px-3 py-2 text-center text-xs font-bold text-white" href={contact.googleMapsUrl} target="_blank"><Send size={15} className="mx-auto" /></a>
+            <a className="focus-ring rounded-full bg-hotelBlue px-3 py-2 text-center text-xs font-bold text-white" href={contact.googleMapsUrl} target="_blank" rel="noopener noreferrer" aria-label={t.actions.map}><Send size={15} className="mx-auto" /></a>
           </div>
         </div>
       ) : null}

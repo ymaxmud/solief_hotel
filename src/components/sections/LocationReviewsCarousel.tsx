@@ -27,7 +27,7 @@ export function LocationReviewsCarousel({ t, locale }: { t: Dictionary; locale: 
             ))}
           </div>
           <p className="mt-4 font-display text-6xl leading-none">{siteConfig.rating}</p>
-          <p className="mt-2 text-white/70">{siteConfig.reviewCount} {t.hero.reviews.toLowerCase()}</p>
+          <p className="mt-2 text-white/70">{t.hero.reviews}</p>
           <ButtonLink href={contact.googleMapsProfileUrl || contact.googleMapsUrl} target="_blank" variant="ghost" className="mt-6 border-white/20">
             <ExternalLink size={16} /> {t.actions.readReviews}
           </ButtonLink>
@@ -64,7 +64,8 @@ export function LocationReviewsCarousel({ t, locale }: { t: Dictionary; locale: 
                 type="button"
                 onClick={() => setActive(index)}
                 className={`focus-ring h-2.5 rounded-full transition-all ${index === active ? "w-10 bg-coralBase" : "w-2.5 bg-charcoal/20"}`}
-                aria-label={`${t.actions.openPhoto} ${index + 1}`}
+                aria-label={item.theme[locale]}
+                aria-current={index === active ? "true" : undefined}
               />
             ))}
           </div>

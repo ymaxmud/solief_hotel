@@ -35,7 +35,7 @@ export function LocationSection({ t, locale }: { t: Dictionary; locale: Locale }
                 <p className="text-xs uppercase tracking-[0.24em] text-warmSand">{t.nav.location}</p>
                 <h3 className="mt-1 font-display text-2xl">{t.location.mapTitle}</h3>
               </div>
-              <a href={contact.googleMapsProfileUrl || contact.googleMapsUrl} target="_blank" className="focus-ring rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20" aria-label={t.actions.googleProfile}>
+              <a href={contact.googleMapsProfileUrl || contact.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="focus-ring rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20" aria-label={t.actions.googleProfile}>
                 <ExternalLink size={18} />
               </a>
             </div>

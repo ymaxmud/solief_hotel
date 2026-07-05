@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Currency, Locale } from "@/types";
 import type { QuickBookingValues } from "@/lib/schema";
 import { getDictionary } from "@/i18n/dictionary";
@@ -24,12 +24,45 @@ import { BenefitsSection } from "./BenefitsSection";
 import { FAQSection } from "./FAQSection";
 import { ContactSection } from "./ContactSection";
 
+const SUPPORTED_LOCALES: Locale[] = ["en", "ru", "uz"];
+
+function isLocale(value: string | null | undefined): value is Locale {
+  return !!value && (SUPPORTED_LOCALES as string[]).includes(value);
+}
+
 export function HomePage() {
-  const [locale, setLocale] = useState<Locale>(siteConfig.defaultLocale);
+  const [locale, setLocaleState] = useState<Locale>(siteConfig.defaultLocale);
   const [currency, setCurrency] = useState<Currency>("UZS");
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingDefaults, setBookingDefaults] = useState<Partial<QuickBookingValues> | undefined>();
   const t = useMemo(() => getDictionary(locale), [locale]);
+
+  // Resolve the initial locale from ?lang= (so the hreflang alternates actually
+  // serve their language) or a previously saved choice, then keep the document
+  // language and persistence in sync on every change.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("lang");
+    const stored = window.localStorage.getItem("solief-locale");
+    const initial = isLocale(fromUrl) ? fromUrl : isLocale(stored) ? stored : siteConfig.defaultLocale;
+    setLocaleState(initial);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  const setLocale = useCallback((next: Locale) => {
+    setLocaleState(next);
+    try {
+      window.localStorage.setItem("solief-locale", next);
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", next);
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      // Non-fatal: locale still applies in-memory if storage/history is unavailable.
+    }
+  }, []);
 
   function openBooking(defaults?: Partial<QuickBookingValues>) {
     setBookingDefaults(defaults);

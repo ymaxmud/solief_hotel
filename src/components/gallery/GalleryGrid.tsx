@@ -10,7 +10,7 @@ import { hotelImages } from "@/content/images";
 import { GalleryFilter, type GalleryFilterValue } from "./GalleryFilter";
 import { GalleryLightbox } from "./GalleryLightbox";
 
-const storyOrder: GalleryFilterValue[] = ["exterior", "rooms", "bathroom", "dining", "lobby", "amenities", "details"];
+const storyOrder: GalleryFilterValue[] = ["exterior", "rooms", "bathroom", "dining", "kitchen", "lobby", "amenities", "details"];
 
 export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
   const [filter, setFilter] = useState<GalleryFilterValue>("all");
@@ -161,7 +161,7 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
               <span className="absolute inset-0 bg-gradient-to-t from-treeGreen/85 via-treeGreen/10 to-transparent" />
               <span className="absolute bottom-4 left-4 right-4">
                 <span className="block font-display text-2xl text-white">{t.gallery[category]}</span>
-                <span className="mt-1 block text-sm text-white/68">{count} {t.nav.gallery.toLowerCase()}</span>
+                <span className="mt-1 block text-sm text-white/68">{count} {t.gallery.photos}</span>
               </span>
             </button>
           );

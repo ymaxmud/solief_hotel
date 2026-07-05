@@ -14,14 +14,22 @@ export function FAQSection({ t, locale }: { t: Dictionary; locale: Locale }) {
       <div className="mx-auto max-w-4xl">
         <SectionHeading title={t.sections.faq} />
         <div className="grid gap-3">
-          {faqs.map((faq, index) => (
-            <div key={faq.question.en} className="rounded-lg border border-charcoal/10 bg-white/75 shadow-soft">
-              <button className="focus-ring flex w-full items-center justify-between gap-4 p-5 text-left font-bold" onClick={() => setOpen(open === index ? -1 : index)}>
-                {faq.question[locale]} <ChevronDown className={open === index ? "rotate-180 transition" : "transition"} />
-              </button>
-              {open === index ? <p className="px-5 pb-5 text-greenGray">{faq.answer[locale]}</p> : null}
-            </div>
-          ))}
+          {faqs.map((faq, index) => {
+            const isOpen = open === index;
+            return (
+              <div key={faq.question.en} className="rounded-lg border border-charcoal/10 bg-white/75 shadow-soft">
+                <button
+                  className="focus-ring flex w-full items-center justify-between gap-4 p-5 text-left font-bold"
+                  onClick={() => setOpen(isOpen ? -1 : index)}
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-answer-${index}`}
+                >
+                  {faq.question[locale]} <ChevronDown className={isOpen ? "rotate-180 transition" : "transition"} />
+                </button>
+                {isOpen ? <p id={`faq-answer-${index}`} className="px-5 pb-5 text-greenGray">{faq.answer[locale]}</p> : null}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

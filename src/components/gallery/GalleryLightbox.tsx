@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { HotelImage, Locale } from "@/types";
 import type { Dictionary } from "@/i18n/dictionary";
 
 export function GalleryLightbox({ images, index, setIndex, onClose, locale, t }: { images: HotelImage[]; index: number; setIndex: (index: number) => void; onClose: () => void; locale: Locale; t: Dictionary }) {
   const image = images[index];
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -18,10 +20,22 @@ export function GalleryLightbox({ images, index, setIndex, onClose, locale, t }:
     return () => window.removeEventListener("keydown", onKey);
   }, [images.length, index, onClose, setIndex]);
 
+  // Lock body scroll while open and move focus into the dialog / restore it on close.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
   if (!image) return null;
   return (
-    <div className="fixed inset-0 z-[85] grid place-items-center bg-treeGreen/92 p-4 text-white backdrop-blur" role="dialog" aria-modal="true">
-      <button className="focus-ring absolute right-4 top-4 rounded-full bg-white/10 p-3" onClick={onClose} aria-label={t.actions.close}><X /></button>
+    <div className="fixed inset-0 z-[85] grid place-items-center bg-treeGreen/92 p-4 text-white backdrop-blur" role="dialog" aria-modal="true" aria-label={image.alt[locale]}>
+      <button ref={closeRef} className="focus-ring absolute right-4 top-4 rounded-full bg-white/10 p-3" onClick={onClose} aria-label={t.actions.close}><X /></button>
       <button className="focus-ring absolute left-4 top-1/2 rounded-full bg-white/10 p-3" onClick={() => setIndex((index - 1 + images.length) % images.length)} aria-label={t.actions.previous}><ChevronLeft /></button>
       <figure className="w-full max-w-5xl">
         <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-white/5">

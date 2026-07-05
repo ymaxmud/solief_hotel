@@ -14,7 +14,7 @@ export function ReviewsSection({ t, locale }: { t: Dictionary; locale: Locale })
           <div className="rounded-lg bg-treeGreen p-8 text-white shadow-glow">
             <div className="flex items-center gap-2 text-warmSand">{Array.from({ length: 5 }).map((_, i) => <Star key={i} fill="currentColor" size={22} />)}</div>
             <p className="mt-5 font-display text-6xl">{siteConfig.rating}</p>
-            <p className="text-white/70">{siteConfig.reviewCount} {t.hero.reviews.toLowerCase()}</p>
+            <p className="text-white/70">{t.hero.reviews}</p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {reviews.map((review) => (
