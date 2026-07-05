@@ -47,7 +47,15 @@ export const attendanceTokenSchema = z.object({
 
 export const qrAttendanceSchema = z.object({
   token: z.string().min(20),
-  staffIdentifier: z.string().min(3),
+  // Must be an email or contain at least one digit. Without this, an identifier
+  // with no digits (e.g. "abc") normalizes to "" and matches any staff row whose
+  // phone is null in redeem_attendance_qr, bypassing identity binding.
+  staffIdentifier: z
+    .string()
+    .min(3)
+    .refine((value) => value.includes("@") || /\d/.test(value), {
+      message: "Enter a valid staff email or phone number."
+    }),
   pin: z.string().min(4),
   purpose: z.enum(["check_in", "check_out"]),
   lat: z.coerce.number(),
@@ -60,6 +68,16 @@ export const manualAttendanceSchema = z.object({
   action: z.enum(["check_in", "check_out"]),
   correctionReason: z.string().min(5),
   at: z.string().optional()
+});
+
+export const createGuestSchema = z.object({
+  fullName: z.string().trim().min(2).max(120),
+  phone: z.string().trim().max(40).optional().or(z.literal("")),
+  email: z.string().trim().email().max(160).optional().or(z.literal("")),
+  preferredLanguage: z.enum(["EN", "RU", "UZ"]).optional().or(z.literal("")),
+  preferredContact: z.string().trim().max(40).optional().or(z.literal("")),
+  country: z.string().trim().max(80).optional().or(z.literal("")),
+  notes: z.string().trim().max(2000).optional().or(z.literal(""))
 });
 
 export const bookingUpdateSchema = z.object({

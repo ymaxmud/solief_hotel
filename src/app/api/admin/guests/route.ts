@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withRole, insertAudit } from "@/lib/crm/api";
+import { createGuestSchema } from "@/lib/crm/validation";
 
 export async function GET(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ service }) => {
@@ -11,16 +12,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ profile, service }) => {
-    const body = await request.json();
-    if (!body.fullName) return NextResponse.json({ ok: false, error: "Full name required" }, { status: 400 });
+    const parsed = createGuestSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid guest", errors: parsed.error.flatten() }, { status: 400 });
+    const input = parsed.data;
     const row = {
-      full_name: body.fullName,
-      phone: body.phone || null,
-      email: body.email || null,
-      preferred_language: body.preferredLanguage || null,
-      preferred_contact: body.preferredContact || null,
-      country: body.country || null,
-      notes: body.notes || null
+      full_name: input.fullName,
+      phone: input.phone || null,
+      email: input.email || null,
+      preferred_language: input.preferredLanguage || null,
+      preferred_contact: input.preferredContact || null,
+      country: input.country || null,
+      notes: input.notes || null
     };
     const { data, error } = await service.from("guests").insert(row).select("*").single();
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });

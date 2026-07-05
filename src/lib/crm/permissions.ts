@@ -6,6 +6,8 @@ export type CrmAction =
   | "booking:confirm"
   | "booking:reject"
   | "booking:cancel"
+  | "booking:reopen"
+  | "booking:no_show"
   | "stay:create"
   | "stay:update"
   | "service:create"
@@ -27,6 +29,8 @@ const actionRoles: Record<CrmAction, UserRole[]> = {
   "booking:confirm": ["admin", "manager"],
   "booking:reject": ["admin", "manager"],
   "booking:cancel": ["admin", "manager"],
+  "booking:reopen": ["admin", "manager"],
+  "booking:no_show": ["admin", "manager"],
   "stay:create": ["admin", "manager"],
   "stay:update": ["admin", "manager"],
   "service:create": ["admin", "manager"],
@@ -59,5 +63,7 @@ export function bookingStatusAction(status: string | undefined) {
   if (status === "confirmed") return "booking:confirm" as const;
   if (status === "rejected") return "booking:reject" as const;
   if (status === "cancelled") return "booking:cancel" as const;
+  if (status === "new") return "booking:reopen" as const;
+  if (status === "no_show") return "booking:no_show" as const;
   return null;
 }

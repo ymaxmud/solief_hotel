@@ -3,6 +3,8 @@ import { withRole, insertAudit } from "@/lib/crm/api";
 import { staySchema, stayUpdateSchema } from "@/lib/crm/validation";
 import { assertCan } from "@/lib/crm/permissions";
 
+type StayRow = { id: string } & Record<string, unknown>;
+
 export async function GET(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ service }) => {
     const { data, error } = await service
@@ -21,23 +23,37 @@ export async function POST(request: Request) {
     const parsed = staySchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
     const body = parsed.data;
-    const row = {
-      guest_id: body.guestId,
-      booking_request_id: body.bookingRequestId || null,
-      room_id: body.roomId || null,
-      status: body.status,
-      expected_check_in: body.expectedCheckIn || null,
-      expected_check_out: body.expectedCheckOut || null,
-      adults: body.adults,
-      children: body.children,
-      notes: body.notes || null,
-      created_by: profile.id,
-      updated_by: profile.id
-    };
-    const { data, error } = await service.from("stays").insert(row).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-    await insertAudit(request, profile.id, "create", "stays", data.id, data);
-    return NextResponse.json({ ok: true, data });
+    if (body.bookingRequestId) {
+      const { data, error } = await service
+        .rpc("create_stay_from_booking", {
+          p_booking_request_id: body.bookingRequestId,
+          p_room_id: body.roomId || null,
+          p_actor_user_id: profile.id
+        })
+        .single();
+      if (error) return NextResponse.json({ ok: false, error: lifecycleErrorMessage(error.message) }, { status: 400 });
+      const stay = data as StayRow;
+      await insertAudit(request, profile.id, "convert_booking_to_stay", "stays", stay.id, stay);
+      return NextResponse.json({ ok: true, data: stay });
+    }
+
+    const { data, error } = await service
+      .rpc("create_manual_stay", {
+        p_guest_id: body.guestId,
+        p_room_id: body.roomId || null,
+        p_status: body.status,
+        p_expected_check_in: body.expectedCheckIn || null,
+        p_expected_check_out: body.expectedCheckOut || null,
+        p_adults: body.adults,
+        p_children: body.children,
+        p_notes: body.notes || null,
+        p_actor_user_id: profile.id
+      })
+      .single();
+    if (error) return NextResponse.json({ ok: false, error: lifecycleErrorMessage(error.message) }, { status: 400 });
+    const stay = data as StayRow;
+    await insertAudit(request, profile.id, "create", "stays", stay.id, stay);
+    return NextResponse.json({ ok: true, data: stay });
   });
 }
 
@@ -48,22 +64,29 @@ export async function PATCH(request: Request) {
     const parsed = stayUpdateSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
     const input = parsed.data;
-    const update: Record<string, unknown> = {
-      updated_by: profile.id,
-      updated_at: new Date().toISOString()
-    };
-    if (input.roomId !== undefined) update.room_id = input.roomId;
-    if (input.expectedCheckIn !== undefined) update.expected_check_in = input.expectedCheckIn || null;
-    if (input.expectedCheckOut !== undefined) update.expected_check_out = input.expectedCheckOut || null;
-    if (input.notes !== undefined) update.notes = input.notes || null;
-    if (input.status) {
-      update.status = input.status;
-      if (input.status === "checked_in") update.check_in_at = new Date().toISOString();
-      if (input.status === "checked_out") update.check_out_at = new Date().toISOString();
-    }
-    const { data, error } = await service.from("stays").update(update).eq("id", input.id).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-    await insertAudit(request, profile.id, "update", "stays", data.id, data);
-    return NextResponse.json({ ok: true, data });
+    const { data, error } = await service
+      .rpc("update_stay_lifecycle", {
+        p_stay_id: input.id,
+        p_room_id: input.roomId === undefined ? null : input.roomId,
+        p_status: input.status || null,
+        p_expected_check_in: input.expectedCheckIn || null,
+        p_expected_check_out: input.expectedCheckOut || null,
+        p_notes: input.notes === undefined ? null : input.notes,
+        p_actor_user_id: profile.id
+      })
+      .single();
+    if (error) return NextResponse.json({ ok: false, error: lifecycleErrorMessage(error.message) }, { status: 400 });
+    const stay = data as StayRow;
+    await insertAudit(request, profile.id, "update", "stays", stay.id, stay);
+    return NextResponse.json({ ok: true, data: stay });
   });
+}
+
+function lifecycleErrorMessage(message: string) {
+  if (message.includes("room_required_for_check_in")) return "Assign a room before checking in the guest.";
+  if (message.includes("room_not_available")) return "Selected room is not available.";
+  if (message.includes("booking_not_found")) return "Booking request was not found.";
+  if (message.includes("booking_missing_guest")) return "Booking request is missing a linked guest.";
+  if (message.includes("guest_not_found")) return "Guest was not found.";
+  return message;
 }
