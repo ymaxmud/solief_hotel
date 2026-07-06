@@ -26,6 +26,9 @@ export const rooms: Room[] = [
     amenityKeys: ["wifi", "breakfastBuffet", "shower", "slippers", "toiletries", "restroom", "towels", "hairDryer", "toiletPaper", "toothbrush", "ac", "safe", "telephone", "tv", "satellite", "cable", "soundproofing", "smartTv", "wardrobe", "carpet", "workTable", "hanger", "heating", "mosquitoGrid", "trashCans", "outletBed", "laundry", "wakeup", "linens", "cardAccess", "water", "kettle", "kitchenware"],
     images: [
       { src: "/rooms/standard-double-twin/01-room.jpg", alt: { en: "Standard Double or Twin Room at Solief Hotel", ru: "Стандартный двухместный номер в Solief Hotel", uz: "Solief Hoteldagi standart ikki kishilik xona" } },
+      // Standard rooms share the same shower/toilet layout as the Deluxe Quadruple.
+      { src: "/rooms/deluxe-quadruple/02-shower.jpg", alt: { en: "Standard Double or Twin Room shower at Solief Hotel", ru: "Душ в стандартном двухместном номере Solief Hotel", uz: "Solief Hoteldagi standart ikki kishilik xona dushi" } },
+      { src: "/rooms/deluxe-quadruple/03-bathroom.jpg", alt: { en: "Standard Double or Twin Room bathroom at Solief Hotel", ru: "Ванная в стандартном двухместном номере Solief Hotel", uz: "Solief Hoteldagi standart ikki kishilik xona hammomi" } },
       ...sharedImages
     ]
   },
