@@ -20,17 +20,28 @@ export type HotelImage = {
   alt: LocalizedText;
 };
 
+export type RoomImage = { src: string; alt: LocalizedText };
+
 export type Room = {
+  /** Stable slug — also used as the payment/booking room identifier. */
   id: string;
   name: LocalizedText;
   description: LocalizedText;
-  bestFor: LocalizedText;
+  /** Suggested maximum number of guests. */
   capacity: number;
-  beds: LocalizedText;
-  amenities: LocalizedText[];
+  /** Room area in square metres. */
+  areaSqm: number;
+  bedType: LocalizedText;
+  /** Nightly rate in UZS (payment-ready base price). */
   priceUzs: number;
-  priceNote: LocalizedText;
-  imageId: number;
+  breakfastIncluded: boolean;
+  freeCancellation: boolean;
+  /** Reservation possible without a credit card. */
+  noCreditCard: boolean;
+  noSmoking: boolean;
+  /** Amenity keys resolved via the amenity registry in content/roomAmenities.ts. */
+  amenityKeys: string[];
+  images: RoomImage[];
 };
 
 export type Amenity = {

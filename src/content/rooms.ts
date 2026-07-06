@@ -1,84 +1,106 @@
-import type { Room } from "@/types";
+import type { Room, RoomImage } from "@/types";
+
+// Shared common-area photos (breakfast/kitchen zone) appended to each room gallery.
+const sharedImages: RoomImage[] = [
+  { src: "/rooms/shared/coffee-zone.jpg", alt: { en: "Solief Hotel — guest coffee zone", ru: "Solief Hotel — кофе-зона для гостей", uz: "Solief Hotel — mehmonlar uchun kofe zonasi" } },
+  { src: "/rooms/shared/kitchen-bar.jpg", alt: { en: "Solief Hotel — kitchen and breakfast bar", ru: "Solief Hotel — кухня и зона завтрака", uz: "Solief Hotel — oshxona va nonushta bari" } }
+];
 
 export const rooms: Room[] = [
   {
-    id: "standard-double",
-    name: { en: "Standard Double Room", ru: "Стандартный двухместный номер", uz: "Standart ikki kishilik xona" },
+    id: "standard-double-twin",
+    name: { en: "Standard Double or Twin Room", ru: "Стандартный двухместный номер", uz: "Standart ikki kishilik xona" },
     description: {
-      en: "A practical, calm room for couples or solo guests who want simple comfort in Tashkent.",
-      ru: "Практичный и спокойный номер для пар или одного гостя, которым нужен простой комфорт в Ташкенте.",
-      uz: "Juftliklar yoki yakka mehmonlar uchun Toshkentdagi sodda va qulay xona."
+      en: "A calm 20 m² room with twin beds, breakfast included and all the everyday comforts — ideal for solo travellers or two guests.",
+      ru: "Спокойный номер 20 м² с двумя кроватями, включённым завтраком и всеми повседневными удобствами — идеально для одного или двух гостей.",
+      uz: "20 m² tinch xona: ikkita karavot, nonushta va barcha kundalik qulayliklar bilan — yakka yoki ikki mehmon uchun ideal."
     },
-    bestFor: { en: "Couples", ru: "Пары", uz: "Juftliklar" },
     capacity: 2,
-    beds: { en: "1 double bed", ru: "1 двуспальная кровать", uz: "1 ikki kishilik karavot" },
-    amenities: [
-      { en: "Wi-Fi", ru: "Wi-Fi", uz: "Wi-Fi" },
-      { en: "Air conditioning", ru: "Кондиционер", uz: "Konditsioner" },
-      { en: "Private bathroom", ru: "Собственная ванная", uz: "Alohida hammom" }
-    ],
-    priceUzs: 449000,
-    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 30
+    areaSqm: 20,
+    bedType: { en: "Twin beds", ru: "Две односпальные кровати", uz: "Ikkita bir kishilik karavot" },
+    priceUzs: 500000,
+    breakfastIncluded: true,
+    freeCancellation: true,
+    noCreditCard: true,
+    noSmoking: true,
+    amenityKeys: ["wifi", "breakfastBuffet", "shower", "slippers", "toiletries", "restroom", "towels", "hairDryer", "toiletPaper", "toothbrush", "ac", "safe", "telephone", "tv", "satellite", "cable", "soundproofing", "smartTv", "wardrobe", "carpet", "workTable", "hanger", "heating", "mosquitoGrid", "trashCans", "outletBed", "laundry", "wakeup", "linens", "cardAccess", "water", "kettle", "kitchenware"],
+    images: [
+      { src: "/rooms/standard-double-twin/01-room.jpg", alt: { en: "Standard Double or Twin Room at Solief Hotel", ru: "Стандартный двухместный номер в Solief Hotel", uz: "Solief Hoteldagi standart ikki kishilik xona" } },
+      ...sharedImages
+    ]
   },
   {
-    id: "standard-twin",
-    name: { en: "Standard Twin Room", ru: "Стандартный номер с двумя кроватями", uz: "Standart ikki alohida karavotli xona" },
+    id: "twin-suite",
+    name: { en: "Twin Suite", ru: "Твин-люкс", uz: "Tvin-lyuks" },
     description: {
-      en: "A comfortable option for colleagues, friends, or guests who prefer separate beds.",
-      ru: "Удобный вариант для коллег, друзей или гостей, которым нужны отдельные кровати.",
-      uz: "Hamkasblar, do‘stlar yoki alohida karavot xohlovchi mehmonlar uchun qulay tanlov."
+      en: "A spacious 30 m² suite with a double bed and a dining table, giving you extra room to relax after a day in Tashkent.",
+      ru: "Просторный люкс 30 м² с двуспальной кроватью и обеденным столом — больше места, чтобы отдохнуть после дня в Ташкенте.",
+      uz: "30 m² keng lyuks: ikki kishilik karavot va ovqatlanish stoli bilan — Toshkentdagi kundan so‘ng dam olish uchun qo‘shimcha joy."
     },
-    bestFor: { en: "Business trips", ru: "Деловые поездки", uz: "Ish safarlari" },
     capacity: 2,
-    beds: { en: "2 single beds", ru: "2 односпальные кровати", uz: "2 bir kishilik karavot" },
-    amenities: [
-      { en: "Wi-Fi", ru: "Wi-Fi", uz: "Wi-Fi" },
-      { en: "Work-friendly layout", ru: "Удобно для работы", uz: "Ishlashga qulay" },
-      { en: "Private bathroom", ru: "Собственная ванная", uz: "Alohida hammom" }
-    ],
-    priceUzs: 449000,
-    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 23
+    areaSqm: 30,
+    bedType: { en: "Double bed", ru: "Двуспальная кровать", uz: "Ikki kishilik karavot" },
+    priceUzs: 650000,
+    breakfastIncluded: true,
+    freeCancellation: true,
+    noCreditCard: true,
+    noSmoking: true,
+    amenityKeys: ["wifi", "breakfastBuffet", "shower", "slippers", "toiletries", "restroom", "towels", "hairDryer", "toiletPaper", "toothbrush", "ac", "safe", "telephone", "tv", "satellite", "cable", "soundproofing", "smartTv", "wardrobe", "carpet", "hanger", "heating", "mosquitoGrid", "trashCans", "outletBed", "laundry", "wakeup", "linens", "cardAccess", "water", "dinnerTable", "kettle"],
+    images: [
+      { src: "/rooms/twin-suite/01-room.jpg", alt: { en: "Twin Suite at Solief Hotel", ru: "Твин-люкс в Solief Hotel", uz: "Solief Hoteldagi tvin-lyuks" } },
+      { src: "/rooms/twin-suite/02-room.jpg", alt: { en: "Twin Suite interior at Solief Hotel", ru: "Интерьер твин-люкса в Solief Hotel", uz: "Solief Hoteldagi tvin-lyuks ichki ko‘rinishi" } },
+      { src: "/rooms/twin-suite/03-angle.jpg", alt: { en: "Twin Suite from another angle at Solief Hotel", ru: "Твин-люкс с другого ракурса в Solief Hotel", uz: "Solief Hoteldagi tvin-lyuks boshqa burchakdan" } },
+      { src: "/rooms/twin-suite/04-bathroom.jpg", alt: { en: "Twin Suite bathroom at Solief Hotel", ru: "Ванная твин-люкса в Solief Hotel", uz: "Solief Hoteldagi tvin-lyuks hammomi" } },
+      ...sharedImages
+    ]
   },
   {
-    id: "standard-triple",
-    name: { en: "Standard Triple Room", ru: "Стандартный трёхместный номер", uz: "Standart uch kishilik xona" },
+    id: "deluxe-triple",
+    name: { en: "Deluxe Triple Room", ru: "Делюкс трёхместный номер", uz: "Delyuks uch kishilik xona" },
     description: {
-      en: "More space for small families or groups arriving together in Tashkent.",
-      ru: "Больше места для небольшой семьи или группы, приезжающей вместе в Ташкент.",
-      uz: "Toshkentga birga kelgan kichik oila yoki guruh uchun kengroq xona."
+      en: "A bright 30 m² deluxe room with three single beds, made for small groups or families travelling together.",
+      ru: "Светлый номер делюкс 30 м² с тремя односпальными кроватями — для небольших групп или семей, путешествующих вместе.",
+      uz: "30 m² yorug‘ delyuks xona: uchta bir kishilik karavot bilan — birga sayohat qiladigan kichik guruh yoki oilalar uchun."
     },
-    bestFor: { en: "Small families", ru: "Небольшие семьи", uz: "Kichik oilalar" },
     capacity: 3,
-    beds: { en: "Flexible beds", ru: "Гибкая расстановка кроватей", uz: "Moslashuvchan karavotlar" },
-    amenities: [
-      { en: "Wi-Fi", ru: "Wi-Fi", uz: "Wi-Fi" },
-      { en: "Air conditioning", ru: "Кондиционер", uz: "Konditsioner" },
-      { en: "Family-friendly", ru: "Подходит для семьи", uz: "Oilalar uchun qulay" }
-    ],
-    priceUzs: 599000,
-    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 3
+    areaSqm: 30,
+    bedType: { en: "Three single beds", ru: "Три односпальные кровати", uz: "Uchta bir kishilik karavot" },
+    priceUzs: 700700,
+    breakfastIncluded: true,
+    freeCancellation: true,
+    noCreditCard: true,
+    noSmoking: true,
+    amenityKeys: ["wifi", "breakfastBuffet", "shower", "slippers", "toiletries", "restroom", "towels", "hairDryer", "toiletPaper", "handDryer", "toothbrush", "ac", "safe", "tv", "satellite", "cable", "soundproofing", "smartTv", "wardrobe", "carpet", "hanger", "heating", "trashCans", "outletBed", "laundry", "wakeup", "linens", "cardAccess", "water", "dinnerTable", "kettle"],
+    images: [
+      { src: "/rooms/deluxe-triple/01-room.jpg", alt: { en: "Deluxe Triple Room at Solief Hotel", ru: "Делюкс трёхместный номер в Solief Hotel", uz: "Solief Hoteldagi delyuks uch kishilik xona" } },
+      { src: "/rooms/deluxe-triple/02-room.jpg", alt: { en: "Deluxe Triple Room interior at Solief Hotel", ru: "Интерьер делюкс трёхместного номера в Solief Hotel", uz: "Solief Hoteldagi delyuks uch kishilik xona ichki ko‘rinishi" } },
+      { src: "/rooms/deluxe-triple/03-shower.jpg", alt: { en: "Deluxe Triple Room shower at Solief Hotel", ru: "Душ в делюкс трёхместном номере Solief Hotel", uz: "Solief Hoteldagi delyuks uch kishilik xona dushi" } },
+      { src: "/rooms/deluxe-triple/04-bathroom.jpg", alt: { en: "Deluxe Triple Room bathroom at Solief Hotel", ru: "Ванная делюкс трёхместного номера Solief Hotel", uz: "Solief Hoteldagi delyuks uch kishilik xona hammomi" } },
+      ...sharedImages
+    ]
   },
   {
-    id: "family-quadruple",
-    name: { en: "Standard Quadruple / Family Room", ru: "Семейный четырёхместный номер", uz: "Oilaviy to‘rt kishilik xona" },
+    id: "deluxe-quadruple",
+    name: { en: "Deluxe Quadruple Room", ru: "Делюкс четырёхместный номер", uz: "Delyuks to‘rt kishilik xona" },
     description: {
-      en: "A practical family room for guests who want to stay together comfortably.",
-      ru: "Практичный семейный номер для гостей, которые хотят удобно разместиться вместе.",
-      uz: "Birga va qulay joylashishni xohlovchi mehmonlar uchun oilaviy xona."
+      en: "Our largest 35 m² room with four single beds — comfortable space for families or groups who want to stay together.",
+      ru: "Наш самый большой номер 35 м² с четырьмя односпальными кроватями — комфортное пространство для семей или групп.",
+      uz: "Eng katta 35 m² xonamiz: to‘rtta bir kishilik karavot bilan — birga qolishni istagan oilalar yoki guruhlar uchun qulay joy."
     },
-    bestFor: { en: "Families", ru: "Семьи", uz: "Oilalar" },
     capacity: 4,
-    beds: { en: "Family bed setup", ru: "Семейная расстановка", uz: "Oilaviy karavot joylashuvi" },
-    amenities: [
-      { en: "Wi-Fi", ru: "Wi-Fi", uz: "Wi-Fi" },
-      { en: "Private bathroom", ru: "Собственная ванная", uz: "Alohida hammom" },
-      { en: "Extra space", ru: "Больше пространства", uz: "Qo‘shimcha joy" }
-    ],
-    priceUzs: 749000,
-    priceNote: { en: "Confirm final rate with the hotel", ru: "Итоговую цену уточните у отеля", uz: "Yakuniy narxni mehmonxonadan aniqlang" },
-    imageId: 27
+    areaSqm: 35,
+    bedType: { en: "Four single beds", ru: "Четыре односпальные кровати", uz: "To‘rtta bir kishilik karavot" },
+    priceUzs: 1000000,
+    breakfastIncluded: true,
+    freeCancellation: true,
+    noCreditCard: true,
+    noSmoking: true,
+    amenityKeys: ["wifi", "breakfastBuffet", "shower", "slippers", "toiletries", "restroom", "towels", "hairDryer", "toiletPaper", "toothbrush", "ac", "safe", "telephone", "tv", "satellite", "cable", "soundproofing", "smartTv", "wardrobe", "carpet", "hanger", "heating", "mosquitoGrid", "trashCans", "outletBed", "laundry", "wakeup", "linens", "cardAccess", "water", "dinnerTable", "kettle"],
+    images: [
+      { src: "/rooms/deluxe-quadruple/01-room.jpg", alt: { en: "Deluxe Quadruple Room at Solief Hotel", ru: "Делюкс четырёхместный номер в Solief Hotel", uz: "Solief Hoteldagi delyuks to‘rt kishilik xona" } },
+      { src: "/rooms/deluxe-quadruple/02-shower.jpg", alt: { en: "Deluxe Quadruple Room shower at Solief Hotel", ru: "Душ в делюкс четырёхместном номере Solief Hotel", uz: "Solief Hoteldagi delyuks to‘rt kishilik xona dushi" } },
+      { src: "/rooms/deluxe-quadruple/03-bathroom.jpg", alt: { en: "Deluxe Quadruple Room bathroom at Solief Hotel", ru: "Ванная делюкс четырёхместного номера Solief Hotel", uz: "Solief Hoteldagi delyuks to‘rt kishilik xona hammomi" } },
+      ...sharedImages
+    ]
   }
 ];

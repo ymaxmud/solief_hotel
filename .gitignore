@@ -29,3 +29,6 @@ supabase/.temp/
 # keep original source images out of git; app assets live in public/images/
 /*.png
 .vercel
+
+# original room photo source assets (served copies live in public/rooms/)
+solief_room_photos/
