@@ -9,6 +9,9 @@ export const bookingSchema = z
     checkOut: z.string().min(1, "Check-out required"),
     guests: z.coerce.number().min(1, "At least one guest").max(30),
     roomType: z.string().min(1, "Room type required").max(120),
+    // Room slug for payment/booking linkage. Optional and currently not persisted
+    // server-side — see PAYMENT_READINESS_NOTES.md.
+    roomId: z.string().max(64).optional(),
     language: z.string().min(1, "Preferred language required").max(10),
     contactMethod: z.string().min(1, "Contact method required").max(40),
     message: z.string().max(2000).optional(),

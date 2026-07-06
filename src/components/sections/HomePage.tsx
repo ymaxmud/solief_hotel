@@ -78,7 +78,7 @@ export function HomePage() {
         <BookingBar t={t} locale={locale} onSubmit={(values) => openBooking(values)} />
         <OwnerPitchSection t={t} />
         <StorySection t={t} locale={locale} />
-        <RoomsSection t={t} locale={locale} currency={currency} onBook={() => openBooking()} />
+        <RoomsSection t={t} locale={locale} currency={currency} onBook={openBooking} />
         <GallerySection t={t} locale={locale} />
         <AmenitiesSection t={t} locale={locale} />
         <LocationSection t={t} locale={locale} />

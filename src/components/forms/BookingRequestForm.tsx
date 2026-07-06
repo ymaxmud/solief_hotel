@@ -9,6 +9,8 @@ import { bookingSchema, type BookingFormValues, type QuickBookingValues } from "
 import { rooms } from "@/content/rooms";
 import { contact } from "@/content/contact";
 import { legalContent } from "@/content/legal";
+import { formatPrice } from "@/lib/currency";
+import { nightsBetween, quoteBooking } from "@/lib/payment";
 import type { Locale } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { TurnstileWidget } from "./TurnstileWidget";
@@ -29,6 +31,7 @@ export function BookingRequestForm({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting }
   } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -46,15 +49,26 @@ export function BookingRequestForm({
     }
   });
 
+  // Payment-ready price preview. Backend does not yet persist price/room id — the
+  // selected room is carried in `roomType`, and `roomId` is sent for forward
+  // compatibility (ignored server-side until the payments migration lands).
+  const selectedRoom = rooms.find((room) => room.name[locale] === watch("roomType"));
+  const nights = nightsBetween(watch("checkIn"), watch("checkOut"));
+  const quote =
+    selectedRoom && nights > 0
+      ? quoteBooking({ roomId: selectedRoom.id, roomName: selectedRoom.name[locale], nightlyUzs: selectedRoom.priceUzs, nights, guests: 1 })
+      : null;
+
   async function onSubmit(data: BookingFormValues) {
     setSuccess("");
     setReference("");
     setSubmitError("");
     try {
+      const room = rooms.find((item) => item.name[locale] === data.roomType);
       const response = await fetch("/api/booking-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, turnstileToken })
+        body: JSON.stringify({ ...data, roomId: room?.id, turnstileToken })
       });
       const json = await response.json();
       if (!response.ok || !json.ok) {
@@ -127,6 +141,12 @@ export function BookingRequestForm({
           <p>{success}</p>
           {reference ? <p className="mt-2 inline-flex items-center gap-2 font-bold text-coralBase"><Mail size={16} /> {reference}</p> : null}
         </div>
+      ) : null}
+      {quote ? (
+        <p className="rounded-lg border border-hotelBlue/20 bg-hotelBlue/5 p-3 text-sm text-greenGray">
+          {t.booking.estimatedTotal}: <span className="font-bold text-coralBase">{formatPrice(quote.totalUzs, "UZS", locale)}</span>
+          <span className="text-greenGray/70"> · {quote.nights} × {formatPrice(quote.nightlyUzs, "UZS", locale)}</span>
+        </p>
       ) : null}
       <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
       <p className="text-xs text-charcoal/55">
