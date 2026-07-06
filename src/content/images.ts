@@ -75,4 +75,15 @@ export const hotelImages: HotelImage[] = imageIds.map((id) => {
   };
 });
 
-export const heroImage = hotelImages.find((image) => image.priority) || hotelImages[0];
+// Dedicated landing/hero photo (not part of the public gallery).
+export const heroImage: HotelImage = {
+  id: 0,
+  src: "/hero/landing.jpg",
+  category: "exterior",
+  priority: true,
+  alt: {
+    en: "Solief Hotel building exterior in Chilanzar district, Tashkent",
+    ru: "Здание отеля Solief в Чиланзарском районе Ташкента",
+    uz: "Toshkent Chilonzor tumanidagi Solief mehmonxonasi binosi"
+  }
+};
