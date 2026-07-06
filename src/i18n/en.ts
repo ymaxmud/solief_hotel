@@ -24,5 +24,5 @@ export const en = {
   contact: { title: "Send a request or call directly", subtitle: "For exact availability, room details, and arrival support, contact the hotel team.", address: "Address", phone: "Phone", email: "Email" },
   chatbot: { title: "Solief assistant", intro: "I can help with basic hotel information.", placeholder: "Choose a quick question", fallback: "I can help with basic hotel information. For exact availability, please contact the hotel.", quick: { check: "Check-in/out", address: "Address", phone: "Phone", rooms: "Room types", booking: "Booking request", map: "Map", amenities: "Amenities" } },
   admin: { title: "Admin CRM", passcode: "Password", login: "Enter", intro: "Production hotel CRM powered by Supabase.", hotel: "Hotel details", prices: "Room prices", content: "CRM data", saved: "Saved" },
-  footer: { description: "A cozy local hotel in Tashkent with warm hospitality and practical comfort.", demo: "Direct booking website", staffPortal: "Staff portal" }
+  footer: { description: "A cozy local hotel in Tashkent with warm hospitality and practical comfort.", demo: "Direct booking website", staffPortal: "Staff portal", privacy: "Privacy Policy", terms: "Terms" }
 };

@@ -11,6 +11,7 @@ import { FloatingCTA } from "@/components/layout/FloatingCTA";
 import { Modal } from "@/components/ui/Modal";
 import { BookingRequestForm } from "@/components/forms/BookingRequestForm";
 import { Chatbot } from "@/components/chatbot/Chatbot";
+import { CookieConsent } from "@/components/layout/CookieConsent";
 import { Hero } from "./Hero";
 import { BookingBar } from "./BookingBar";
 import { OwnerPitchSection } from "./OwnerPitchSection";
@@ -89,6 +90,7 @@ export function HomePage() {
       <Footer t={t} />
       <FloatingCTA t={t} onBook={() => openBooking()} />
       <Chatbot t={t} locale={locale} onBook={() => openBooking()} />
+      <CookieConsent locale={locale} />
       <Modal open={bookingOpen} onClose={() => setBookingOpen(false)} title={t.booking.title} closeLabel={t.actions.close}>
         <BookingRequestForm t={t} locale={locale} defaults={bookingDefaults} />
       </Modal>

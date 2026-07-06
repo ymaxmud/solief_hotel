@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MapPin, Phone } from "lucide-react";
 import type { Dictionary } from "@/i18n/dictionary";
 import { siteConfig } from "@/content/siteContent";
@@ -22,10 +23,16 @@ export function Footer({ t }: { t: Dictionary }) {
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           {(["rooms", "gallery", "amenities", "location", "faq", "contact"] as const).map((link) => (
-            <a className="text-white/75 hover:text-white" href={`#${link}`} key={link}>
+            <a className="text-white/75 hover:text-white" href={`/#${link}`} key={link}>
               {t.nav[link]}
             </a>
           ))}
+          <Link className="text-white/75 hover:text-white" href="/privacy">
+            {t.footer.privacy}
+          </Link>
+          <Link className="text-white/75 hover:text-white" href="/terms">
+            {t.footer.terms}
+          </Link>
         </div>
       </div>
       <div className="mx-auto mt-10 max-w-7xl border-t border-white/10 pt-5 text-xs text-white/50">

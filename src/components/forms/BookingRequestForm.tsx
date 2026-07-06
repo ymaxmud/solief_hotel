@@ -8,6 +8,7 @@ import type { Dictionary } from "@/i18n/dictionary";
 import { bookingSchema, type BookingFormValues, type QuickBookingValues } from "@/lib/schema";
 import { rooms } from "@/content/rooms";
 import { contact } from "@/content/contact";
+import { legalContent } from "@/content/legal";
 import type { Locale } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { TurnstileWidget } from "./TurnstileWidget";
@@ -128,6 +129,13 @@ export function BookingRequestForm({
         </div>
       ) : null}
       <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
+      <p className="text-xs text-charcoal/55">
+        {legalContent[locale].bookingConsent.before}
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-coralBase underline-offset-4 hover:underline">
+          {legalContent[locale].bookingConsent.link}
+        </a>
+        {legalContent[locale].bookingConsent.after}
+      </p>
       <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
         <Send size={17} /> {t.actions.submit}
       </Button>
