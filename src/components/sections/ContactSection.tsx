@@ -23,8 +23,9 @@ export function ContactSection({ t, locale }: { t: Dictionary; locale: Locale })
             </div>
             <div className="mt-8 flex flex-wrap gap-2">
               <ButtonLink href={contact.googleMapsUrl} target="_blank">{t.actions.map}</ButtonLink>
-              {contact.whatsappUrl ? <ButtonLink href={contact.whatsappUrl} variant="ghost">{t.actions.whatsapp}</ButtonLink> : <span className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/55">{t.actions.whatsapp}: {t.actions.comingSoon}</span>}
-              {contact.telegramUrl ? <ButtonLink href={contact.telegramUrl} variant="ghost">{t.actions.telegram}</ButtonLink> : <span className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/55">{t.actions.telegram}: {t.actions.comingSoon}</span>}
+              {/* Hide unconfigured channels rather than showing a "coming soon" label. */}
+              {contact.whatsappUrl ? <ButtonLink href={contact.whatsappUrl} variant="ghost">{t.actions.whatsapp}</ButtonLink> : null}
+              {contact.telegramUrl ? <ButtonLink href={contact.telegramUrl} variant="ghost">{t.actions.telegram}</ButtonLink> : null}
             </div>
           </div>
           <div className="rounded-lg border border-charcoal/10 bg-white/85 p-5 shadow-soft md:p-7">
