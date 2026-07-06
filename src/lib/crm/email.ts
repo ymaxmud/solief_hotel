@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import type { BookingFormValues } from "@/lib/schema";
 
 export function getBookingRecipients() {
@@ -37,23 +38,71 @@ export function buildBookingNotification(reference: string, data: BookingFormVal
   return { subject, body, adminUrl };
 }
 
+// SMTP is considered configured once a user + password are present. Host/port
+// default to Gmail so a Gmail App Password needs only SMTP_USER + SMTP_PASS.
+function smtpConfigured() {
+  return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+async function sendViaSmtp(recipients: string[], subject: string, text: string, from: string) {
+  const port = Number(process.env.SMTP_PORT || 465);
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port,
+    secure: port === 465, // 465 = implicit TLS, 587 = STARTTLS
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    // Don't let a slow SMTP handshake hang the serverless function.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000
+  });
+  const info = await transporter.sendMail({ from, to: recipients.join(", "), subject, text });
+  return { messageId: info.messageId, accepted: info.accepted, rejected: info.rejected, response: info.response };
+}
+
 export async function sendBookingEmail(reference: string, data: BookingFormValues) {
   const recipients = getBookingRecipients();
   const notification = buildBookingNotification(reference, data);
+
+  if (!recipients.length) {
+    return {
+      status: "manual_required" as const,
+      recipients,
+      notification,
+      providerResponse: null,
+      error: "No booking email recipients configured (set BOOKING_EMAIL_TO)"
+    };
+  }
+
+  // Preferred path: direct SMTP (e.g. Gmail App Password) — no third-party API.
+  if (smtpConfigured()) {
+    const from = process.env.BOOKING_EMAIL_FROM || process.env.SMTP_USER!;
+    try {
+      const providerResponse = await sendViaSmtp(recipients, notification.subject, notification.body, from);
+      return { status: "sent" as const, recipients, notification, providerResponse, error: null };
+    } catch (error) {
+      return {
+        status: "failed" as const,
+        recipients,
+        notification,
+        providerResponse: null,
+        error: error instanceof Error ? error.message : "SMTP send failed"
+      };
+    }
+  }
+
+  // Fallback path: Resend API (if configured instead of SMTP).
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.BOOKING_EMAIL_FROM;
-
-  if (!recipients.length || !apiKey || !from) {
+  if (!apiKey || !from) {
     return {
       status: "manual_required" as const,
       recipients,
       notification,
       providerResponse: null,
       error: !apiKey
-        ? "RESEND_API_KEY is not configured"
-        : !from
-          ? "BOOKING_EMAIL_FROM verified sender is not configured"
-          : "No booking email recipients configured"
+        ? "No email transport configured (set SMTP_USER + SMTP_PASS, or RESEND_API_KEY)"
+        : "BOOKING_EMAIL_FROM verified sender is not configured"
     };
   }
 
