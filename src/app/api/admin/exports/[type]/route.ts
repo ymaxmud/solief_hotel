@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan, type CrmAction } from "@/lib/crm/permissions";
 import { toCsv } from "@/lib/crm/csv";
 
@@ -29,7 +29,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ type
     if (status && ["bookings", "services", "stays", "attendance"].includes(type)) query = query.eq("status", status);
 
     const { data, error } = await query;
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("exports:" + type, error);
     await insertAudit(request, profile.id, "export", config.table, null, { type, from, to, status, rows: data?.length || 0 });
     const csv = toCsv(data || []);
     return new Response(csv, {

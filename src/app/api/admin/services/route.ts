@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { serviceAssignmentSchema, serviceUpdateSchema } from "@/lib/crm/validation";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
 
 type ServiceAssignmentRow = { id: string } & Record<string, unknown>;
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
       .from("service_assignments")
       .select("*, guests(full_name), staff_members(full_name), stays(id)")
       .order("created_at", { ascending: false });
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("services:list", error);
     return NextResponse.json({ ok: true, data });
   });
 }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         p_actor_user_id: profile.id
       })
       .single();
-    if (error) return NextResponse.json({ ok: false, error: serviceErrorMessage(error.message) }, { status: 400 });
+    if (error) return apiError("services:create", error, { status: 400, message: serviceErrorMessage(error.message) });
     const assignment = data as ServiceAssignmentRow;
     await insertAudit(request, profile.id, "create", "service_assignments", assignment.id, assignment);
     return NextResponse.json({ ok: true, data: assignment });
@@ -61,7 +61,7 @@ export async function PATCH(request: Request) {
       if (input.status === "done") update.completed_at = new Date().toISOString();
     }
     const { data, error } = await service.from("service_assignments").update(update).eq("id", input.id).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("services:update", error);
     await insertAudit(request, profile.id, "update", "service_assignments", data.id, data);
     return NextResponse.json({ ok: true, data });
   });
@@ -70,5 +70,5 @@ export async function PATCH(request: Request) {
 function serviceErrorMessage(message: string) {
   if (message.includes("checked_in_stay_required")) return "Service assignments require a checked-in guest stay.";
   if (message.includes("staff_not_active")) return "Selected staff member is not active.";
-  return message;
+  return "Could not create the service assignment. Please check the details and try again.";
 }

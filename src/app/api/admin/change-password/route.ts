@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { changePasswordSchema } from "@/lib/crm/validation";
 import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/crm/auth";
+import { apiError } from "@/lib/crm/api";
 
 const blockedPasswords = new Set(["1234demo", "password", "password123", "solief1234", "admin123456"]);
 
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   if (userError || !user) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const { error: updateError } = await supabase.auth.updateUser({ password: parsed.data.password });
-  if (updateError) return NextResponse.json({ ok: false, error: updateError.message }, { status: 400 });
+  if (updateError) return apiError("change-password", updateError, { status: 400, message: "Could not update the password. Ensure it meets the requirements and differs from your current one." });
 
   const service = createSupabaseServiceClient();
   let { data, error } = await service

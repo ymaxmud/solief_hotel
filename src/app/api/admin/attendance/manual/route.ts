@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { manualAttendanceSchema } from "@/lib/crm/validation";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { localInputToIso } from "@/lib/datetime";
 
 export async function POST(request: Request) {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         })
         .select("*")
         .single();
-      if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      if (error) return apiError("attendance:manual-check-in", error);
       await insertAudit(request, profile.id, "manual_check_in", "attendance_records", data.id, data);
       return NextResponse.json({ ok: true, data });
     }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       .eq("id", openRecord.id)
       .select("*")
       .single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("attendance:manual-check-out", error);
     await insertAudit(request, profile.id, "manual_check_out", "attendance_records", data.id, data);
     return NextResponse.json({ ok: true, data });
   });

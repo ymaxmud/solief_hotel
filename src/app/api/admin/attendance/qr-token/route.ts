@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { attendanceTokenSchema } from "@/lib/crm/validation";
 import { createAttendanceToken, hashAttendanceToken } from "@/lib/crm/attendance";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 
 export async function POST(request: Request) {
   return withRole(request, ["admin", "manager"], async ({ profile, service }) => {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       })
       .select("id")
       .single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("attendance:qr-token", error);
     const url = `${process.env.NEXT_PUBLIC_SITE_URL || "https://soliefhotel.vercel.app"}/staff/attendance?token=${encodeURIComponent(token)}&purpose=${parsed.data.purpose}`;
     const qrDataUrl = await QRCode.toDataURL(url, { margin: 1, width: 320 });
     await insertAudit(request, profile.id, "create", "attendance_qr_tokens", data.id, { purpose: parsed.data.purpose, expiresAt });

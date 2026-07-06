@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createUserSchema, userUpdateSchema } from "@/lib/crm/validation";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
 
 export async function GET(request: Request) {
   return withRole(request, ["admin"], async ({ service }) => {
     const { data, error } = await service.from("app_users").select("*").order("created_at", { ascending: false });
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("users:list", error);
     return NextResponse.json({ ok: true, data });
   });
 }
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       email_confirm: true,
       user_metadata: { full_name: input.fullName, role: input.role }
     });
-    if (createError || !created.user) return NextResponse.json({ ok: false, error: createError?.message || "Could not create user" }, { status: 500 });
+    if (createError || !created.user) return apiError("users:create", createError, { message: "Could not create the user. The email may already be in use." });
 
     const row = {
       id: created.user.id,
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const { error } = await service.from("app_users").insert(row);
     if (error) {
       await service.auth.admin.deleteUser(created.user.id);
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      return apiError("users:create-profile", error);
     }
     await insertAudit(request, profile.id, "create", "app_users", created.user.id, row);
     return NextResponse.json({ ok: true, data: row });
@@ -82,13 +82,13 @@ export async function PATCH(request: Request) {
       const { error: resetError } = await service.auth.resetPasswordForEmail(target.email, {
         redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://soliefhotel.vercel.app"}/admin/login`
       });
-      if (resetError) return NextResponse.json({ ok: false, error: resetError.message }, { status: 500 });
+      if (resetError) return apiError("users:reset-password", resetError, { message: "Could not send the reset email. Please try again." });
       update.force_password_change = true;
       update.last_password_reset_at = new Date().toISOString();
     }
 
     const { data, error } = await service.from("app_users").update(update).eq("id", input.id).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("users:update", error);
     await insertAudit(request, profile.id, "update", "app_users", input.id, { before: target, after: data, resetPassword: Boolean(input.resetPassword) });
     return NextResponse.json({ ok: true, data });
   });

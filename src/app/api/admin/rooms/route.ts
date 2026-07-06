@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { roomUpdateSchema } from "@/lib/crm/validation";
 import { assertCan } from "@/lib/crm/permissions";
 
 export async function GET(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ service }) => {
     const { data, error } = await service.from("rooms").select("*, room_categories(name_en,name_ru,name_uz)").order("room_number");
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("rooms:list", error);
     return NextResponse.json({ ok: true, data });
   });
 }
@@ -25,7 +25,7 @@ export async function PATCH(request: Request) {
     if (body.cleaningStatus) update.cleaning_status = body.cleaningStatus;
     if (body.notes !== undefined) update.notes = body.notes || null;
     const { data, error } = await service.from("rooms").update(update).eq("id", body.id).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("rooms:update", error);
     await insertAudit(request, profile.id, "update", "rooms", data.id, data);
     return NextResponse.json({ ok: true, data });
   });

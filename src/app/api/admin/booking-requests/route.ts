@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { bookingUpdateSchema } from "@/lib/crm/validation";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { buildWhatsAppBookingLink } from "@/lib/crm/whatsapp";
 import { assertCan, bookingStatusAction } from "@/lib/crm/permissions";
 
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
       .from("booking_requests")
       .select("*, notifications(status, channel, error), assigned_staff:staff_members(full_name)")
       .order("created_at", { ascending: false });
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("booking-requests:list", error);
     return NextResponse.json({
       ok: true,
       data: (data || []).map((row) => ({
@@ -52,7 +52,7 @@ export async function PATCH(request: Request) {
     if (parsed.data.status) update.status = parsed.data.status;
     if (parsed.data.assignedStaffId !== undefined) update.assigned_staff_id = parsed.data.assignedStaffId;
     const { data, error } = await service.from("booking_requests").update(update).eq("id", id).select("*").single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("booking-requests:update", error);
     await insertAudit(request, profile.id, "update", "booking_requests", id, data);
     return NextResponse.json({ ok: true, data });
   });

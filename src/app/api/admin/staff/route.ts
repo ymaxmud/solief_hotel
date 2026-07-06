@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { staffSchema, staffUpdateSchema } from "@/lib/crm/validation";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
 
 const staffSelect = "id,full_name,email,phone,role,status,notes,created_at,updated_at,created_by,updated_by,attendance_pin_set_at";
@@ -8,7 +8,7 @@ const staffSelect = "id,full_name,email,phone,role,status,notes,created_at,updat
 export async function GET(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ service }) => {
     const { data, error } = await service.from("staff_members").select(staffSelect).order("created_at", { ascending: false });
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("staff:list", error);
     return NextResponse.json({ ok: true, data });
   });
 }
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       updated_by: profile.id
     };
     const { data, error } = await service.from("staff_members").insert(row).select(staffSelect).single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("staff:create", error);
     await insertAudit(request, profile.id, "create", "staff_members", data.id, data);
     return NextResponse.json({ ok: true, data });
   });
@@ -58,11 +58,11 @@ export async function PATCH(request: Request) {
         p_staff_member_id: input.id,
         p_pin: input.attendancePin
       });
-      if (pinError) return NextResponse.json({ ok: false, error: pinError.message }, { status: 400 });
+      if (pinError) return apiError("staff:set-pin", pinError, { status: 400, message: "PIN is too weak. Use at least 6 non-sequential digits." });
     }
 
     const { data, error } = await service.from("staff_members").update(update).eq("id", input.id).select(staffSelect).single();
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("staff:update", error);
 
     await insertAudit(request, profile.id, "update", "staff_members", input.id, { before, after: data, pinChanged: Boolean(input.attendancePin) });
     return NextResponse.json({ ok: true, data });

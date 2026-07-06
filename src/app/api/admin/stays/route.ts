@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withRole, insertAudit } from "@/lib/crm/api";
+import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { staySchema, stayUpdateSchema } from "@/lib/crm/validation";
 import { assertCan } from "@/lib/crm/permissions";
 
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
       .from("stays")
       .select("*, guests(full_name,phone,email), rooms(room_number)")
       .order("created_at", { ascending: false });
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    if (error) return apiError("stays:list", error);
     return NextResponse.json({ ok: true, data });
   });
 }
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
           p_actor_user_id: profile.id
         })
         .single();
-      if (error) return NextResponse.json({ ok: false, error: lifecycleErrorMessage(error.message) }, { status: 400 });
+      if (error) return apiError("stays:convert", error, { status: 400, message: lifecycleErrorMessage(error.message) });
       const stay = data as StayRow;
       await insertAudit(request, profile.id, "convert_booking_to_stay", "stays", stay.id, stay);
       return NextResponse.json({ ok: true, data: stay });
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         p_actor_user_id: profile.id
       })
       .single();
-    if (error) return NextResponse.json({ ok: false, error: lifecycleErrorMessage(error.message) }, { status: 400 });
+    if (error) return apiError("stays:create", error, { status: 400, message: lifecycleErrorMessage(error.message) });
     const stay = data as StayRow;
     await insertAudit(request, profile.id, "create", "stays", stay.id, stay);
     return NextResponse.json({ ok: true, data: stay });
@@ -75,7 +75,7 @@ export async function PATCH(request: Request) {
         p_actor_user_id: profile.id
       })
       .single();
-    if (error) return NextResponse.json({ ok: false, error: lifecycleErrorMessage(error.message) }, { status: 400 });
+    if (error) return apiError("stays:update", error, { status: 400, message: lifecycleErrorMessage(error.message) });
     const stay = data as StayRow;
     await insertAudit(request, profile.id, "update", "stays", stay.id, stay);
     return NextResponse.json({ ok: true, data: stay });
@@ -88,5 +88,5 @@ function lifecycleErrorMessage(message: string) {
   if (message.includes("booking_not_found")) return "Booking request was not found.";
   if (message.includes("booking_missing_guest")) return "Booking request is missing a linked guest.";
   if (message.includes("guest_not_found")) return "Guest was not found.";
-  return message;
+  return "Could not complete the stay update. Please check the details and try again.";
 }
