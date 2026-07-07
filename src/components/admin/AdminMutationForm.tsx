@@ -64,7 +64,10 @@ export function AdminMutationForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
+    // autoComplete off: this is a CRM form where staff enter OTHER people's
+    // details (guests, staff), so browser autofill of the operator's own saved
+    // name/phone/email must not pollute the records.
+    <form onSubmit={submit} autoComplete="off" className="grid gap-3 md:grid-cols-2">
       {fields.map((field) => (
         <label key={field.name} className="grid gap-1 text-sm font-semibold text-greenGray">
           {field.label}
@@ -73,6 +76,7 @@ export function AdminMutationForm({
               name={field.name}
               required={field.required}
               defaultValue=""
+              autoComplete="off"
               className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3"
             >
               <option value="" disabled={field.required}>
@@ -85,7 +89,9 @@ export function AdminMutationForm({
               })}
             </select>
           ) : (
-            <input name={field.name} type={field.type || "text"} required={field.required} className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3" />
+            // A random, unrecognized token reliably suppresses Chrome autofill,
+            // which ignores autoComplete="off" for known fields like phone/email.
+            <input name={field.name} type={field.type || "text"} required={field.required} autoComplete={`off-${field.name}`} data-lpignore="true" className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3" />
           )}
         </label>
       ))}

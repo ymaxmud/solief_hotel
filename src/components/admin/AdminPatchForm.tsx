@@ -54,12 +54,12 @@ export function AdminPatchForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid min-w-44 gap-2">
+    <form onSubmit={submit} autoComplete="off" className="grid min-w-44 gap-2">
       {fields.map((field) => (
         <label key={field.name} className="grid gap-1 text-xs font-semibold text-greenGray">
           {field.label}
           {field.options ? (
-            <select name={field.name} required={field.required} className="focus-ring min-h-9 rounded-md border border-charcoal/15 bg-white px-2">
+            <select name={field.name} required={field.required} autoComplete="off" className="focus-ring min-h-9 rounded-md border border-charcoal/15 bg-white px-2">
               {field.options.map((option) => {
                 const value = typeof option === "string" ? option : option.value;
                 const label = typeof option === "string" ? option : option.label;
@@ -67,7 +67,8 @@ export function AdminPatchForm({
               })}
             </select>
           ) : (
-            <input name={field.name} type={field.type || "text"} required={field.required} className="focus-ring min-h-9 rounded-md border border-charcoal/15 bg-white px-2" />
+            // A PIN is a secret; use new-password so browsers/managers don't autofill or save it.
+            <input name={field.name} type={field.type || "text"} required={field.required} autoComplete="new-password" data-lpignore="true" className="focus-ring min-h-9 rounded-md border border-charcoal/15 bg-white px-2" />
           )}
         </label>
       ))}

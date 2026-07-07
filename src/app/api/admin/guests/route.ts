@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ profile, service }) => {
     const parsed = createGuestSchema.safeParse(await request.json().catch(() => null));
-    if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid guest", errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid guest." }, { status: 400 });
     const input = parsed.data;
     const row = {
       full_name: input.fullName,
