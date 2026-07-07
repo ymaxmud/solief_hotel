@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const allowed = assertCan(profile.role, "staff:manage");
     if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
     const parsed = staffSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
     const row = {
       full_name: input.fullName,
@@ -31,7 +31,12 @@ export async function POST(request: Request) {
       updated_by: profile.id
     };
     const { data, error } = await service.from("staff_members").insert(row).select(staffSelect).single();
-    if (error) return apiError("staff:create", error);
+    if (error) {
+      if ((error as { code?: string }).code === "23505") {
+        return NextResponse.json({ ok: false, error: "A staff member with this email already exists." }, { status: 409 });
+      }
+      return apiError("staff:create", error);
+    }
     await insertAudit(request, profile.id, "create", "staff_members", data.id, data);
     return NextResponse.json({ ok: true, data });
   });
@@ -42,7 +47,7 @@ export async function PATCH(request: Request) {
     const allowed = assertCan(profile.role, "staff:manage");
     if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
     const parsed = staffUpdateSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
     const { data: before } = await service.from("staff_members").select(staffSelect).eq("id", input.id).single();
     const update: Record<string, unknown> = { updated_by: profile.id, updated_at: new Date().toISOString() };
@@ -62,7 +67,12 @@ export async function PATCH(request: Request) {
     }
 
     const { data, error } = await service.from("staff_members").update(update).eq("id", input.id).select(staffSelect).single();
-    if (error) return apiError("staff:update", error);
+    if (error) {
+      if ((error as { code?: string }).code === "23505") {
+        return NextResponse.json({ ok: false, error: "A staff member with this email already exists." }, { status: 409 });
+      }
+      return apiError("staff:update", error);
+    }
 
     await insertAudit(request, profile.id, "update", "staff_members", input.id, { before, after: data, pinChanged: Boolean(input.attendancePin) });
     return NextResponse.json({ ok: true, data });
