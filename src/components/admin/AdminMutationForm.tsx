@@ -69,7 +69,10 @@ export function AdminMutationForm({
     // name/phone/email must not pollute the records.
     <form onSubmit={submit} autoComplete="off" className="grid gap-3 md:grid-cols-2">
       {fields.map((field) => (
-        <label key={field.name} className="grid gap-1 text-sm font-semibold text-greenGray">
+        // min-w-0 lets each grid cell shrink to its column; without it the inputs'
+        // intrinsic width overflows the narrow "Create" card (the Phone field spilling
+        // past the card edge).
+        <label key={field.name} className="grid min-w-0 gap-1 text-sm font-semibold text-greenGray">
           {field.label}
           {field.options ? (
             <select
@@ -77,7 +80,7 @@ export function AdminMutationForm({
               required={field.required}
               defaultValue=""
               autoComplete="off"
-              className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3"
+              className="focus-ring min-h-11 w-full min-w-0 rounded-lg border border-charcoal/15 bg-white px-3"
             >
               <option value="" disabled={field.required}>
                 {field.placeholder ?? "—"}
@@ -91,7 +94,7 @@ export function AdminMutationForm({
           ) : (
             // A random, unrecognized token reliably suppresses Chrome autofill,
             // which ignores autoComplete="off" for known fields like phone/email.
-            <input name={field.name} type={field.type || "text"} required={field.required} autoComplete={`off-${field.name}`} data-lpignore="true" className="focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white px-3" />
+            <input name={field.name} type={field.type || "text"} required={field.required} autoComplete={`off-${field.name}`} data-lpignore="true" className="focus-ring min-h-11 w-full min-w-0 rounded-lg border border-charcoal/15 bg-white px-3" />
           )}
         </label>
       ))}
