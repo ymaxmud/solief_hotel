@@ -71,20 +71,22 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
         <AdminCard title={t.services}>
           <AdminListControls t={t} search={q} searchLabel={t.searchNotes} status={status} from={from} to={to} statusOptions={SERVICE_STATUSES.map((value) => ({ value, label: adminEnumLabel(t, "serviceStatus", value) }))} />
           {error ? <p className="rounded-lg bg-coralBase/10 p-4 text-sm font-semibold text-coralBase">{t.loadError}</p> : (
-          <SimpleTable headers={[t.exactGuestServed, t.staff, t.serviceType, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
+          <SimpleTable headers={[t.exactGuestServed, t.staff, t.serviceType, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => {
+            const terminal = row.status === "done" || row.status === "cancelled";
+            return [
             (row.guests as { full_name?: string } | null)?.full_name || "-",
             (row.staff_members as { full_name?: string } | null)?.full_name || "-",
             row.service_type,
             adminEnumLabel(t, "serviceStatus", row.status),
-            canManage ? (
+            canManage && !terminal ? (
               <div key="actions" className="flex min-w-56 flex-wrap gap-2">
-                <AdminActionButton endpoint="/api/admin/services" body={{ id: row.id, status: "in_progress" }} label={t.start} />
+                {row.status === "open" ? <AdminActionButton endpoint="/api/admin/services" body={{ id: row.id, status: "in_progress" }} label={t.start} /> : null}
                 <AdminActionButton endpoint="/api/admin/services" body={{ id: row.id, status: "done" }} label={t.complete} />
                 <AdminActionButton endpoint="/api/admin/services" body={{ id: row.id, status: "cancelled" }} label={t.cancel} confirm={t.confirmDangerousAction} className="rounded-full bg-charcoal px-3 py-2 text-xs font-bold text-white disabled:opacity-60" />
                 <AdminSelectAction endpoint="/api/admin/services" id={row.id} field="staffMemberId" options={staffOptions} placeholder={t.assignStaff} buttonLabel={t.save} />
               </div>
             ) : "-"
-          ])} />
+          ]; })} />
           )}
           <AdminPagination pathname="/admin/services" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>

@@ -21,8 +21,21 @@ export async function POST(request: Request) {
     const allowed = assertCan(profile.role, "service:create");
     if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
     const parsed = serviceAssignmentSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
+    // Guard against accidental duplicates (e.g. a double-submit / retry): reject if an
+    // open or in-progress service of the same type already exists for this guest.
+    const { data: existing } = await service
+      .from("service_assignments")
+      .select("id")
+      .eq("guest_id", input.guestId)
+      .eq("service_type", input.serviceType)
+      .in("status", ["open", "in_progress"])
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      return NextResponse.json({ ok: false, error: "An active service of this type already exists for this guest." }, { status: 409 });
+    }
     const { data, error } = await service
       .rpc("create_service_assignment_for_checked_in_guest", {
         p_guest_id: input.guestId,
@@ -47,7 +60,7 @@ export async function PATCH(request: Request) {
     const allowed = assertCan(profile.role, "service:update");
     if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
     const parsed = serviceUpdateSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
     const update: Record<string, unknown> = {
       updated_by: profile.id,
