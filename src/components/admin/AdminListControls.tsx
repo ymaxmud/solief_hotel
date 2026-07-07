@@ -16,7 +16,7 @@ export function AdminListControls({
   search?: string;
   searchLabel?: string;
   status?: string;
-  statusOptions?: string[];
+  statusOptions?: Array<string | { value: string; label: string }>;
   from?: string;
   to?: string;
   showDateFilters?: boolean;
@@ -32,7 +32,11 @@ export function AdminListControls({
           {t.status}
           <select name="status" defaultValue={status} className="focus-ring min-h-10 rounded-lg border border-charcoal/15 bg-white px-3 text-sm">
             <option value="">{t.all}</option>
-            {statusOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+            {statusOptions.map((option) => {
+              const value = typeof option === "string" ? option : option.value;
+              const label = typeof option === "string" ? option : option.label;
+              return <option key={value} value={value}>{label}</option>;
+            })}
           </select>
         </label>
       ) : null}

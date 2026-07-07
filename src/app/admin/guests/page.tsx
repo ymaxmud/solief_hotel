@@ -6,6 +6,7 @@ import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
 import { tashkentDayStart, tashkentDayEnd } from "@/lib/datetime";
+import { adminEnumLabel } from "@/i18n/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
   }
   if (from) query = query.gte("created_at", tashkentDayStart(from));
   if (to) query = query.lte("created_at", tashkentDayEnd(to));
-  const { data, count } = await query;
+  const { data, count, error } = await query;
   return (
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.guests}</h1>
@@ -39,7 +40,9 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
         </AdminCard>
         <AdminCard title={t.guests}>
           <AdminListControls t={t} search={q} from={from} to={to} />
-          <SimpleTable headers={[t.fullName, t.phone, t.email, t.status]} emptyLabel={t.noData} rows={(data || []).map((row) => [row.full_name, row.phone || "-", row.email || "-", ((row.stays || []) as Array<{ status: string }>).map((stay) => stay.status).join(", ") || t.lead])} />
+          {error ? <p className="rounded-lg bg-coralBase/10 p-4 text-sm font-semibold text-coralBase">{t.loadError}</p> : (
+          <SimpleTable headers={[t.fullName, t.phone, t.email, t.status]} emptyLabel={t.noData} rows={(data || []).map((row) => [row.full_name, row.phone || "-", row.email || "-", ((row.stays || []) as Array<{ status: string }>).map((stay) => adminEnumLabel(t, "stayStatus", stay.status)).join(", ") || t.lead])} />
+          )}
           <AdminPagination pathname="/admin/guests" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>

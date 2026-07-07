@@ -7,6 +7,9 @@ import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminPatchForm } from "@/components/admin/AdminPatchForm";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
+import { adminEnumLabel } from "@/i18n/admin";
+
+const STAFF_ROLES = ["manager", "receptionist"];
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +30,7 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
     query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%`);
   }
   if (status) query = query.eq("status", status);
-  const { data, count } = await query;
+  const { data, count, error } = await query;
   return (
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.staff}</h1>
@@ -51,21 +54,24 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
           </AdminCard>
         ) : null}
         <AdminCard title={t.staff}>
-          <AdminListControls t={t} search={q} status={status} statusOptions={["active", "inactive"]} showDateFilters={false} />
+          <AdminListControls t={t} search={q} status={status} statusOptions={[{ value: "active", label: t.active }, { value: "inactive", label: t.inactive }]} showDateFilters={false} />
+          {error ? <p className="rounded-lg bg-coralBase/10 p-4 text-sm font-semibold text-coralBase">{t.loadError}</p> : (
           <SimpleTable headers={[t.fullName, t.email, t.phone, t.role, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             row.full_name,
             row.email || "-",
             row.phone || "-",
-            row.role,
-            row.status,
+            adminEnumLabel(t, "role", row.role),
+            row.status === "active" ? t.active : t.inactive,
             user.role !== "receptionist" ? (
-              <div key="actions" className="flex min-w-64 flex-wrap gap-2">
-                <AdminSelectAction endpoint="/api/admin/staff" id={row.id} field="status" options={["active", "inactive"].map((value) => ({ value, label: value }))} placeholder={t.status} buttonLabel={t.save} />
-                <AdminSelectAction endpoint="/api/admin/staff" id={row.id} field="role" options={["manager", "receptionist"].map((value) => ({ value, label: value }))} placeholder={t.role} buttonLabel={t.save} />
+              <div key="actions" className="flex min-w-64 flex-wrap items-center gap-2">
+                <AdminSelectAction endpoint="/api/admin/staff" id={row.id} field="status" options={[{ value: "active", label: t.active }, { value: "inactive", label: t.inactive }]} placeholder={t.status} buttonLabel={t.save} />
+                <AdminSelectAction endpoint="/api/admin/staff" id={row.id} field="role" options={STAFF_ROLES.map((value) => ({ value, label: adminEnumLabel(t, "role", value) }))} placeholder={t.role} buttonLabel={t.save} />
+                <span className={`text-xs font-semibold ${row.attendance_pin_set_at ? "text-greenGray" : "text-coralBase"}`}>{row.attendance_pin_set_at ? t.pinSet : t.pinNotSet}</span>
                 <AdminPatchForm endpoint="/api/admin/staff" id={row.id} submitLabel={t.setPin} savedLabel={t.saved} saveFailedLabel={t.saveFailed} loadingLabel={t.loading} fields={[{ name: "attendancePin", label: t.attendancePin, type: "password", required: true }]} />
               </div>
             ) : "-"
           ])} />
+          )}
           <AdminPagination pathname="/admin/staff" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>

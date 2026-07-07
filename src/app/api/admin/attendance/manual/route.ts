@@ -6,7 +6,7 @@ import { localInputToIso } from "@/lib/datetime";
 export async function POST(request: Request) {
   return withRole(request, ["admin", "manager"], async ({ profile, service }) => {
     const parsed = manualAttendanceSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
     const method = profile.role === "admin" ? "manual_admin" : "manual_manager";
     let at = new Date().toISOString();
@@ -14,6 +14,10 @@ export async function POST(request: Request) {
       const iso = localInputToIso(input.at);
       if (!iso) return NextResponse.json({ ok: false, error: "Invalid date/time." }, { status: 400 });
       at = iso;
+    }
+    // A correction timestamp must not be in the future (small clock-skew tolerance).
+    if (new Date(at).getTime() > Date.now() + 120_000) {
+      return NextResponse.json({ ok: false, error: "The time cannot be in the future." }, { status: 400 });
     }
 
     if (input.action === "check_in") {
@@ -37,7 +41,14 @@ export async function POST(request: Request) {
         })
         .select("*")
         .single();
-      if (error) return apiError("attendance:manual-check-in", error);
+      if (error) {
+        // Unique index (one open record per staff) can fire on a concurrent race
+        // that slipped past the pre-check above — surface the friendly message.
+        if ((error as { code?: string }).code === "23505") {
+          return NextResponse.json({ ok: false, error: "Open attendance record already exists." }, { status: 400 });
+        }
+        return apiError("attendance:manual-check-in", error);
+      }
       await insertAudit(request, profile.id, "manual_check_in", "attendance_records", data.id, data);
       return NextResponse.json({ ok: true, data });
     }
@@ -51,6 +62,9 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
     if (!openRecord) return NextResponse.json({ ok: false, error: "No attendance record to close." }, { status: 400 });
+    if (new Date(at).getTime() <= new Date(openRecord.check_in_at).getTime()) {
+      return NextResponse.json({ ok: false, error: "Check-out must be after check-in." }, { status: 400 });
+    }
     const { data, error } = await service
         .from("attendance_records")
         .update({

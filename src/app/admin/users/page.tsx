@@ -7,6 +7,9 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
+import { adminEnumLabel } from "@/i18n/admin";
+
+const ROLE_OPTIONS = ["admin", "manager", "receptionist"];
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +27,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   }
   if (status === "active") query = query.eq("is_active", true);
   if (status === "inactive") query = query.eq("is_active", false);
-  const { data, count } = await query;
+  const { data, count, error } = await query;
   return (
     <AdminShell user={user}>
       <h1 className="font-display text-4xl">{t.users}</h1>
@@ -46,21 +49,25 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         </AdminCard>
         <AdminCard title={t.users}>
           <AdminListControls t={t} search={q} status={status} statusOptions={["active", "inactive"]} showDateFilters={false} />
+          {error ? (
+            <p className="rounded-lg bg-coralBase/10 p-4 text-sm font-semibold text-coralBase">{t.loadError}</p>
+          ) : (
           <SimpleTable headers={[t.email, t.fullName, t.role, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             row.email,
             row.full_name,
-            row.role,
+            adminEnumLabel(t, "role", row.role),
             row.is_active ? t.active : t.inactive,
             <div key="actions" className="flex min-w-56 flex-wrap gap-2">
-              <AdminSelectAction endpoint="/api/admin/users" id={row.id} field="role" options={["admin", "manager", "receptionist"].map((value) => ({ value, label: value }))} placeholder={t.role} buttonLabel={t.save} confirm={t.confirmDangerousAction} />
+              <AdminSelectAction endpoint="/api/admin/users" id={row.id} field="role" options={ROLE_OPTIONS.map((value) => ({ value, label: adminEnumLabel(t, "role", value) }))} placeholder={t.role} buttonLabel={t.save} confirm={t.confirmDangerousAction} />
               {row.is_active ? (
                 <AdminActionButton endpoint="/api/admin/users" body={{ id: row.id, isActive: false }} label={t.deactivate} confirm={t.confirmDangerousAction} className="rounded-full bg-charcoal px-3 py-2 text-xs font-bold text-white disabled:opacity-60" />
               ) : (
                 <AdminActionButton endpoint="/api/admin/users" body={{ id: row.id, isActive: true }} label={t.reactivate} />
               )}
-              <AdminActionButton endpoint="/api/admin/users" body={{ id: row.id, resetPassword: true, forcePasswordChange: true }} label={t.resetPassword} confirm={t.confirmDangerousAction} />
+              <AdminActionButton endpoint="/api/admin/users" body={{ id: row.id, resetPassword: true, forcePasswordChange: true }} label={t.resetPassword} confirm={t.confirmDangerousAction} resultField="tempPassword" resultLabel={t.tempPasswordShare} />
             </div>
           ])} />
+          )}
           <AdminPagination pathname="/admin/users" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>

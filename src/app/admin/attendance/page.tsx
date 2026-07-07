@@ -4,6 +4,7 @@ import { AdminMutationForm } from "@/components/admin/AdminMutationForm";
 import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { formatTashkent } from "@/lib/datetime";
+import { adminEnumLabel } from "@/i18n/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,8 @@ export default async function AttendancePage() {
         <AdminCard title={t.attendanceManualTitle}>
           <AdminMutationForm endpoint="/api/admin/attendance/manual" submitLabel={t.save} savedLabel={t.saved} saveFailedLabel={t.saveFailed} loadingLabel={t.loading} fields={[
             { name: "staffMemberId", label: t.staff, options: staffOptions, required: true },
-            { name: "action", label: t.action, options: ["check_in", "check_out"], required: true },
-            { name: "at", label: t.date, type: "datetime-local" },
+            { name: "action", label: t.action, options: [{ value: "check_in", label: t.enumLabels.attendanceAction.check_in }, { value: "check_out", label: t.enumLabels.attendanceAction.check_out }], required: true },
+            { name: "at", label: `${t.date} · Asia/Tashkent`, type: "datetime-local" },
             { name: "correctionReason", label: t.correctionReason, required: true }
           ]} />
         </AdminCard>
@@ -40,7 +41,7 @@ export default async function AttendancePage() {
           <AdminCard title={t.suspiciousAttempts}>
             <SimpleTable headers={[t.staff, t.action, t.status, t.reason, t.date]} emptyLabel={t.noData} rows={(attempts || []).map((row) => [
               (row.staff_members as { full_name?: string } | null)?.full_name || "-",
-              row.purpose || "-",
+              row.purpose ? adminEnumLabel(t, "attendanceAction", row.purpose) : "-",
               row.success ? t.success : t.attendanceFailed,
               row.error_code || (Array.isArray(row.anomaly_flags) ? row.anomaly_flags.join(", ") : "-"),
               formatTashkent(row.created_at)

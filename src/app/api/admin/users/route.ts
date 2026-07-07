@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { createUserSchema, userUpdateSchema } from "@/lib/crm/validation";
 import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
+
+// A random temporary password that satisfies the 12-char letters+numbers policy.
+function makeTempPassword() {
+  return randomUUID().replace(/-/g, "").slice(0, 10) + "A1";
+}
 
 export async function GET(request: Request) {
   return withRole(request, ["admin"], async ({ service }) => {
@@ -16,7 +22,7 @@ export async function POST(request: Request) {
     const allowed = assertCan(profile.role, "user:manage");
     if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
     const parsed = createUserSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
     const { data: created, error: createError } = await service.auth.admin.createUser({
       email: input.email,
@@ -31,7 +37,9 @@ export async function POST(request: Request) {
       email: input.email,
       full_name: input.fullName,
       role: input.role,
-      is_active: true
+      is_active: true,
+      // New users log in with the temporary password, then must set their own.
+      force_password_change: true
     };
     const { error } = await service.from("app_users").insert(row);
     if (error) {
@@ -48,7 +56,7 @@ export async function PATCH(request: Request) {
     const allowed = assertCan(profile.role, "user:manage");
     if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
     const parsed = userUpdateSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     const input = parsed.data;
 
     const { data: target, error: targetError } = await service.from("app_users").select("*").eq("id", input.id).single();
@@ -78,18 +86,22 @@ export async function PATCH(request: Request) {
       update.deactivated_at = input.isActive ? null : new Date().toISOString();
     }
     if (input.forcePasswordChange !== undefined) update.force_password_change = input.forcePasswordChange;
+    // Supabase Auth SMTP is not configured, so email recovery links never arrive.
+    // Instead set a temporary password directly and hand it back once for the
+    // manager to give the user, who is then forced to change it on next login.
+    let tempPassword: string | undefined;
     if (input.resetPassword) {
-      const { error: resetError } = await service.auth.resetPasswordForEmail(target.email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://soliefhotel.vercel.app"}/admin/login`
-      });
-      if (resetError) return apiError("users:reset-password", resetError, { message: "Could not send the reset email. Please try again." });
+      tempPassword = makeTempPassword();
+      const { error: resetError } = await service.auth.admin.updateUserById(target.id, { password: tempPassword });
+      if (resetError) return apiError("users:reset-password", resetError, { message: "Could not reset the password. Please try again." });
       update.force_password_change = true;
       update.last_password_reset_at = new Date().toISOString();
     }
 
     const { data, error } = await service.from("app_users").update(update).eq("id", input.id).select("*").single();
     if (error) return apiError("users:update", error);
+    // Never audit the plaintext temp password — only that a reset happened.
     await insertAudit(request, profile.id, "update", "app_users", input.id, { before: target, after: data, resetPassword: Boolean(input.resetPassword) });
-    return NextResponse.json({ ok: true, data });
+    return NextResponse.json({ ok: true, data, tempPassword });
   });
 }

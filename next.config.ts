@@ -8,11 +8,13 @@ import type { NextConfig } from "next";
 // 'unsafe-eval' is added only in development because Next.js dev mode (HMR / React
 // Refresh) evaluates code with eval; it is never present in production builds.
 const isDev = process.env.NODE_ENV !== "production";
-const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com"];
+// Vercel Analytics + Speed Insights load their script from va.vercel-scripts.com
+// and beacon to vitals.vercel-insights.com when the same-origin proxy is absent.
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://va.vercel-scripts.com"];
 if (isDev) scriptSrc.push("'unsafe-eval'");
 
 // Next.js dev HMR uses a websocket to the local server.
-const connectSrc = ["'self'", "https://*.supabase.co", "https://challenges.cloudflare.com"];
+const connectSrc = ["'self'", "https://*.supabase.co", "https://challenges.cloudflare.com", "https://va.vercel-scripts.com", "https://vitals.vercel-insights.com"];
 if (isDev) connectSrc.push("ws:");
 
 const csp = [

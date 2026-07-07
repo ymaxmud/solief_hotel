@@ -8,6 +8,9 @@ import { AdminSelectAction } from "@/components/admin/AdminSelectAction";
 import { AdminListControls, AdminPagination } from "@/components/admin/AdminListControls";
 import { adminPageSize, getPage, getParam, getRange, searchTerm } from "@/lib/crm/pagination";
 import { tashkentDayStart, tashkentDayEnd } from "@/lib/datetime";
+import { adminEnumLabel } from "@/i18n/admin";
+
+const SERVICE_STATUSES = ["open", "in_progress", "done", "cancelled"];
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +31,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   }
   if (from) servicesQuery = servicesQuery.gte("created_at", tashkentDayStart(from));
   if (to) servicesQuery = servicesQuery.lte("created_at", tashkentDayEnd(to));
-  const [{ data, count }, { data: checkedInStays }, { data: staff }] = await Promise.all([
+  const [{ data, count, error }, { data: checkedInStays }, { data: staff }] = await Promise.all([
     servicesQuery,
     service.from("stays").select("id,guest_id,guests(full_name)").eq("status", "checked_in").order("check_in_at", { ascending: false }).limit(100),
     service.from("staff_members").select("id,full_name").eq("status", "active").order("full_name")
@@ -59,19 +62,20 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                 { name: "guestId", label: t.exactGuestServed, options: guestOptions, required: true },
                 { name: "staffMemberId", label: t.staff, options: staffOptions, required: true },
                 { name: "serviceType", label: t.serviceType, options: ["reception", "cleaning", "luggage", "airport_transfer", "maintenance", "complaint", "room_service", "other"], required: true },
-                { name: "status", label: t.status, options: ["open", "in_progress"], required: true },
+                { name: "status", label: t.status, options: [{ value: "open", label: adminEnumLabel(t, "serviceStatus", "open") }, { value: "in_progress", label: adminEnumLabel(t, "serviceStatus", "in_progress") }], required: true },
                 { name: "notes", label: t.notes }
               ]} />
             )}
           </AdminCard>
         ) : null}
         <AdminCard title={t.services}>
-          <AdminListControls t={t} search={q} searchLabel={t.searchNotes} status={status} from={from} to={to} statusOptions={["open", "in_progress", "done", "cancelled"]} />
+          <AdminListControls t={t} search={q} searchLabel={t.searchNotes} status={status} from={from} to={to} statusOptions={SERVICE_STATUSES.map((value) => ({ value, label: adminEnumLabel(t, "serviceStatus", value) }))} />
+          {error ? <p className="rounded-lg bg-coralBase/10 p-4 text-sm font-semibold text-coralBase">{t.loadError}</p> : (
           <SimpleTable headers={[t.exactGuestServed, t.staff, t.serviceType, t.status, t.action]} emptyLabel={t.noData} rows={(data || []).map((row) => [
             (row.guests as { full_name?: string } | null)?.full_name || "-",
             (row.staff_members as { full_name?: string } | null)?.full_name || "-",
             row.service_type,
-            row.status,
+            adminEnumLabel(t, "serviceStatus", row.status),
             canManage ? (
               <div key="actions" className="flex min-w-56 flex-wrap gap-2">
                 <AdminActionButton endpoint="/api/admin/services" body={{ id: row.id, status: "in_progress" }} label={t.start} />
@@ -81,6 +85,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
               </div>
             ) : "-"
           ])} />
+          )}
           <AdminPagination pathname="/admin/services" searchParams={params} page={page} total={count || 0} pageSize={adminPageSize} t={t} />
         </AdminCard>
       </div>

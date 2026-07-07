@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   return withRole(request, ["admin", "manager", "receptionist"], async ({ profile, service }) => {
     const parsed = bookingUpdateSchema.safeParse(await request.json());
-    if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid update", errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid update" }, { status: 400 });
     const { id } = parsed.data;
     const statusAction = bookingStatusAction(parsed.data.status);
     if (statusAction) {
@@ -45,6 +45,15 @@ export async function PATCH(request: Request) {
     if (parsed.data.assignedStaffId !== undefined) {
       const allowed = assertCan(profile.role, "booking:assign_staff");
       if (!allowed.ok) return NextResponse.json({ ok: false, error: allowed.error }, { status: allowed.status });
+    }
+    // Guard transitions: a finalized request (rejected/cancelled/no_show) can only be
+    // reopened (set back to "new"), not re-confirmed or re-rejected from a stale button.
+    if (parsed.data.status) {
+      const { data: current } = await service.from("booking_requests").select("status").eq("id", id).single();
+      const terminal = ["rejected", "cancelled", "no_show"];
+      if (current && terminal.includes(current.status) && parsed.data.status !== "new") {
+        return NextResponse.json({ ok: false, error: "This request is closed. Reopen it to “New” before changing its status." }, { status: 409 });
+      }
     }
     const update: Record<string, unknown> = {
       updated_at: new Date().toISOString()

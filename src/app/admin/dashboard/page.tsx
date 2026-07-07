@@ -3,6 +3,9 @@ import { AdminCard } from "@/components/admin/AdminCard";
 import { SimpleTable } from "@/components/admin/SimpleTable";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
 import { tashkentToday, tashkentDayStart, formatTashkent } from "@/lib/datetime";
+import { adminEnumLabel } from "@/i18n/admin";
+
+const ROOM_STATUSES = ["available", "occupied", "cleaning", "maintenance", "out_of_service"];
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +26,7 @@ export default async function DashboardPage() {
     service.from("stays").select("id", { count: "exact", head: true }).eq("status", "checked_in"),
     service.from("service_assignments").select("id", { count: "exact", head: true }).in("status", ["open", "in_progress"]),
     service.from("booking_requests").select("public_reference,full_name,status,created_at").order("created_at", { ascending: false }).limit(5),
-    service.from("attendance_records").select("check_in_at,staff_members(full_name)").order("created_at", { ascending: false }).limit(5),
+    service.from("attendance_records").select("check_in_at,staff_members(full_name)").order("check_in_at", { ascending: false, nullsFirst: false }).limit(5),
     service.from("rooms").select("status")
   ]);
 
@@ -40,14 +43,14 @@ export default async function DashboardPage() {
         <AdminCard title={t.checkedInStaff} value={checkedInStaff.count || 0} />
         <AdminCard title={t.guestsCheckedIn} value={checkedInGuests.count || 0} />
         <AdminCard title={t.openServices} value={openServices.count || 0} />
-        <AdminCard title={t.roomSnapshot}>{Object.entries(roomCounts).map(([status, count]) => <p key={status}>{status}: {count}</p>)}</AdminCard>
+        <AdminCard title={t.roomSnapshot}>{ROOM_STATUSES.map((status) => <p key={status}>{adminEnumLabel(t, "roomStatus", status)}: {roomCounts[status] || 0}</p>)}</AdminCard>
       </div>
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <AdminCard title={t.latestBookings}>
           <SimpleTable
             headers={[t.reference, t.fullName, t.status]}
             emptyLabel={t.noData}
-            rows={(latestBookings.data || []).map((booking) => [booking.public_reference, booking.full_name, booking.status])}
+            rows={(latestBookings.data || []).map((booking) => [booking.public_reference, booking.full_name, adminEnumLabel(t, "bookingStatus", booking.status)])}
           />
         </AdminCard>
         <AdminCard title={t.latestAttendance}>

@@ -21,11 +21,16 @@ export const changePasswordSchema = z.object({
   password: z.string().min(12).regex(/[A-Za-z]/).regex(/[0-9]/)
 });
 
+// Staff members are hotel employees (attendance/services), not CRM logins — their
+// job role is manager/receptionist only; 'admin' is a CRM-login role and must not
+// be assignable here (the UI never offers it).
+const staffRoleSchema = z.enum(["manager", "receptionist"]);
+
 export const staffSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  role: roleSchema.default("receptionist"),
+  role: staffRoleSchema.default("receptionist"),
   status: z.enum(["active", "inactive"]).default("active"),
   notes: z.string().optional()
 });
@@ -35,7 +40,7 @@ export const staffUpdateSchema = z.object({
   fullName: z.string().min(2).optional(),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  role: roleSchema.optional(),
+  role: staffRoleSchema.optional(),
   status: z.enum(["active", "inactive"]).optional(),
   notes: z.string().optional(),
   attendancePin: z.string().min(6).optional()

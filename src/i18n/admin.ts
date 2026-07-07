@@ -113,7 +113,29 @@ export const adminDictionaries = {
     previous: "Previous",
     next: "Next",
     exportFilters: "Export filters",
-    staffPortal: "Staff portal"
+    staffPortal: "Staff portal",
+    loadError: "Could not load data. Please refresh the page.",
+    confirmPassword: "Confirm new password",
+    passwordsMismatch: "Passwords do not match.",
+    assignedStaff: "Assigned staff",
+    unassigned: "Unassigned",
+    noShow: "No-show",
+    setNoShow: "Mark no-show",
+    reopen: "Reopen",
+    pinSet: "PIN set",
+    pinNotSet: "No PIN",
+    tempPasswordShare: "Temporary password — copy and give it to the user now (shown once):",
+    convertedToStay: "Converted to stay",
+    emailError: "Reason",
+    enumLabels: {
+      roomStatus: { available: "Available", occupied: "Occupied", cleaning: "Cleaning", maintenance: "Maintenance", out_of_service: "Out of service" },
+      cleaningStatus: { clean: "Clean", dirty: "Dirty", in_progress: "In progress", inspected: "Inspected" },
+      role: { admin: "Admin", manager: "Manager", receptionist: "Receptionist" },
+      bookingStatus: { new: "New", contacted: "Contacted", confirmed: "Confirmed", rejected: "Rejected", cancelled: "Cancelled", no_show: "No-show" },
+      serviceStatus: { open: "Open", in_progress: "In progress", done: "Done", cancelled: "Cancelled" },
+      stayStatus: { lead: "Lead", expected: "Expected", checked_in: "Checked in", checked_out: "Checked out", cancelled: "Cancelled" },
+      attendanceAction: { check_in: "Check in", check_out: "Check out" }
+    }
   },
   ru: {
     login: "Войти",
@@ -227,7 +249,29 @@ export const adminDictionaries = {
     previous: "Назад",
     next: "Вперёд",
     exportFilters: "Фильтры экспорта",
-    staffPortal: "Портал персонала"
+    staffPortal: "Портал персонала",
+    loadError: "Не удалось загрузить данные. Обновите страницу.",
+    confirmPassword: "Повторите новый пароль",
+    passwordsMismatch: "Пароли не совпадают.",
+    assignedStaff: "Назначенный сотрудник",
+    unassigned: "Не назначен",
+    noShow: "Не явился",
+    setNoShow: "Отметить неявку",
+    reopen: "Вернуть в новые",
+    pinSet: "PIN задан",
+    pinNotSet: "Нет PIN",
+    tempPasswordShare: "Временный пароль — скопируйте и передайте пользователю сейчас (показывается один раз):",
+    convertedToStay: "Создано проживание",
+    emailError: "Причина",
+    enumLabels: {
+      roomStatus: { available: "Свободен", occupied: "Занят", cleaning: "Уборка", maintenance: "Обслуживание", out_of_service: "Не в эксплуатации" },
+      cleaningStatus: { clean: "Чисто", dirty: "Грязно", in_progress: "В процессе", inspected: "Проверено" },
+      role: { admin: "Администратор", manager: "Менеджер", receptionist: "Ресепшн" },
+      bookingStatus: { new: "Новая", contacted: "Связались", confirmed: "Подтверждена", rejected: "Отклонена", cancelled: "Отменена", no_show: "Не явился" },
+      serviceStatus: { open: "Открыта", in_progress: "В процессе", done: "Выполнена", cancelled: "Отменена" },
+      stayStatus: { lead: "Лид", expected: "Ожидается", checked_in: "Заселён", checked_out: "Выселен", cancelled: "Отменён" },
+      attendanceAction: { check_in: "Приход", check_out: "Уход" }
+    }
   },
   uz: {
     login: "Kirish",
@@ -341,7 +385,29 @@ export const adminDictionaries = {
     previous: "Oldingi",
     next: "Keyingi",
     exportFilters: "Eksport filtrlari",
-    staffPortal: "Xodimlar portali"
+    staffPortal: "Xodimlar portali",
+    loadError: "Ma’lumotni yuklab bo‘lmadi. Sahifani yangilang.",
+    confirmPassword: "Yangi parolni tasdiqlang",
+    passwordsMismatch: "Parollar mos emas.",
+    assignedStaff: "Biriktirilgan xodim",
+    unassigned: "Biriktirilmagan",
+    noShow: "Kelmadi",
+    setNoShow: "Kelmadi deb belgilash",
+    reopen: "Qayta ochish",
+    pinSet: "PIN o‘rnatilgan",
+    pinNotSet: "PIN yo‘q",
+    tempPasswordShare: "Vaqtinchalik parol — nusxalab, hozir foydalanuvchiga bering (bir marta ko‘rsatiladi):",
+    convertedToStay: "Yashashga o‘tkazildi",
+    emailError: "Sabab",
+    enumLabels: {
+      roomStatus: { available: "Bo‘sh", occupied: "Band", cleaning: "Tozalanmoqda", maintenance: "Ta’mirlash", out_of_service: "Ishlamayapti" },
+      cleaningStatus: { clean: "Toza", dirty: "Iflos", in_progress: "Jarayonda", inspected: "Tekshirildi" },
+      role: { admin: "Administrator", manager: "Menejer", receptionist: "Qabulchi" },
+      bookingStatus: { new: "Yangi", contacted: "Bog‘lanildi", confirmed: "Tasdiqlangan", rejected: "Rad etilgan", cancelled: "Bekor qilingan", no_show: "Kelmadi" },
+      serviceStatus: { open: "Ochiq", in_progress: "Jarayonda", done: "Bajarilgan", cancelled: "Bekor qilingan" },
+      stayStatus: { lead: "Lid", expected: "Kutilmoqda", checked_in: "Joylashgan", checked_out: "Chiqqan", cancelled: "Bekor qilingan" },
+      attendanceAction: { check_in: "Kirish", check_out: "Chiqish" }
+    }
   }
 };
 
@@ -349,4 +415,13 @@ export type AdminDictionary = typeof adminDictionaries.en;
 
 export function getAdminDictionary(locale: Locale): AdminDictionary {
   return adminDictionaries[locale] || adminDictionaries.en;
+}
+
+type EnumGroup = keyof AdminDictionary["enumLabels"];
+
+/** Localized label for a DB enum value; falls back to the raw value if unmapped. */
+export function adminEnumLabel(t: AdminDictionary, group: EnumGroup, value: string | null | undefined): string {
+  if (!value) return "—";
+  const map = t.enumLabels[group] as Record<string, string>;
+  return map[value] ?? value;
 }
