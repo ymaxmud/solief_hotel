@@ -19,9 +19,9 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.canonicalUrl),
-  title: "Solief Hotel Tashkent — Cozy Hotel in Chilanzar District",
+  title: "Solief Hotel Tashkent — A Quiet Boutique Stay in Chilanzar",
   description:
-    "Book a comfortable stay at Solief Hotel in Tashkent. Cozy rooms, warm service, easy booking request, and convenient location in Chilanzar district.",
+    "A calm, refined boutique hotel in the Chilanzar district of Tashkent. Comfortable rooms, breakfast included, warm hospitality, and direct booking with the hotel team.",
   alternates: {
     canonical: "/",
     languages: {
@@ -31,19 +31,19 @@ export const metadata: Metadata = {
     }
   },
   openGraph: {
-    title: "Solief Hotel Tashkent — Cozy Hotel in Chilanzar District",
+    title: "Solief Hotel Tashkent — A Quiet Boutique Stay in Chilanzar",
     description:
-      "Comfortable rooms, warm service, easy booking request, and convenient location in Chilanzar district.",
+      "European boutique elegance with the warmth of a family hotel in Tashkent. Comfortable rooms, breakfast included, and direct booking.",
     url: siteConfig.canonicalUrl,
     siteName: "Solief Hotel",
-    images: [{ url: "/og.jpg", width: 1200, height: 588, alt: "Solief Hotel exterior in Chilanzar district, Tashkent" }],
+    images: [{ url: "/og.jpg", width: 1200, height: 588, alt: "Solief Hotel in Chilanzar district, Tashkent" }],
     locale: "en_US",
     type: "website"
   },
   twitter: {
     card: "summary_large_image",
-    title: "Solief Hotel Tashkent",
-    description: "A cozy stay in Tashkent with warm hospitality and easy booking requests.",
+    title: "Solief Hotel Tashkent — Boutique stay in Chilanzar",
+    description: "A calm, refined boutique hotel in Tashkent — comfortable rooms, breakfast included, direct booking.",
     images: ["/og.jpg"]
   },
   robots: {
@@ -86,7 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <a
           href="#top"
-          className="focus-ring sr-only z-[100] rounded-full bg-coralBase px-4 py-2 text-sm font-bold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+          className="focus-ring sr-only z-[100] rounded-full bg-oxford px-4 py-2 text-sm font-bold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
         >
           Skip to content
         </a>
