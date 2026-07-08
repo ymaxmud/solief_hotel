@@ -14,14 +14,12 @@ import { Chatbot } from "@/components/chatbot/Chatbot";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { Hero } from "./Hero";
 import { BookingBar } from "./BookingBar";
-import { OwnerPitchSection } from "./OwnerPitchSection";
 import { StorySection } from "./StorySection";
 import { RoomsSection } from "./RoomsSection";
 import { GallerySection } from "./GallerySection";
 import { AmenitiesSection } from "./AmenitiesSection";
 import { LocationSection } from "./LocationSection";
-import { ReviewsSection } from "./ReviewsSection";
-import { BenefitsSection } from "./BenefitsSection";
+import { TrustSection } from "./TrustSection";
 import { FAQSection } from "./FAQSection";
 import { ContactSection } from "./ContactSection";
 
@@ -76,14 +74,12 @@ export function HomePage() {
       <main>
         <Hero t={t} locale={locale} onBook={() => openBooking()} />
         <BookingBar t={t} locale={locale} onSubmit={(values) => openBooking(values)} />
-        <OwnerPitchSection t={t} />
         <StorySection t={t} locale={locale} />
         <RoomsSection t={t} locale={locale} currency={currency} onBook={openBooking} />
         <GallerySection t={t} locale={locale} />
         <AmenitiesSection t={t} locale={locale} />
         <LocationSection t={t} locale={locale} />
-        <ReviewsSection t={t} locale={locale} />
-        <BenefitsSection t={t} />
+        <TrustSection t={t} />
         <FAQSection t={t} locale={locale} />
         <ContactSection t={t} locale={locale} />
       </main>

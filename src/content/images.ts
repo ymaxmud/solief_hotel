@@ -87,3 +87,53 @@ export const heroImage: HotelImage = {
     uz: "Toshkent Chilonzor tumanidagi Solief mehmonxonasi binosi"
   }
 };
+
+// Curated hero carousel — a calm, boutique image story (exterior → room →
+// lobby → lounge → breakfast). Uses confirmed on-disk assets only.
+export const heroSlides: HotelImage[] = [
+  heroImage,
+  {
+    id: 101,
+    src: "/rooms/twin-suite/01-room.jpg",
+    category: "rooms",
+    priority: false,
+    alt: {
+      en: "Twin Suite guest room at Solief Hotel, Tashkent",
+      ru: "Номер Twin Suite в отеле Solief, Ташкент",
+      uz: "Solief mehmonxonasidagi Twin Suite xonasi, Toshkent"
+    }
+  },
+  {
+    id: 102,
+    src: "/images/1.png",
+    category: "lobby",
+    priority: false,
+    alt: {
+      en: "Reception and lobby at Solief Hotel",
+      ru: "Ресепшн и лобби отеля Solief",
+      uz: "Solief mehmonxonasi qabulxonasi va lobbisi"
+    }
+  },
+  {
+    id: 103,
+    src: "/rooms/shared/coffee-zone.jpg",
+    category: "amenities",
+    priority: false,
+    alt: {
+      en: "Guest coffee and lounge area at Solief Hotel",
+      ru: "Кофе-зона и лаундж для гостей отеля Solief",
+      uz: "Solief mehmonxonasi mehmonlar uchun qahva va dam olish zonasi"
+    }
+  },
+  {
+    id: 104,
+    src: "/images/8.png",
+    category: "dining",
+    priority: false,
+    alt: {
+      en: "Breakfast and dining area at Solief Hotel",
+      ru: "Завтрак и обеденная зона отеля Solief",
+      uz: "Solief mehmonxonasi nonushta va ovqatlanish zonasi"
+    }
+  }
+];
