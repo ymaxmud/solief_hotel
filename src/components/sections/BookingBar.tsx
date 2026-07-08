@@ -34,7 +34,7 @@ export function BookingBar({
 
   return (
     <section className="sticky top-[72px] z-30 hidden px-4 md:block" aria-label={t.booking.title}>
-      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto grid max-w-7xl grid-cols-[repeat(5,minmax(0,1fr))_auto] gap-2 rounded-lg border border-white/35 bg-treeGreen/82 p-3 shadow-glow backdrop-blur-xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto grid max-w-7xl grid-cols-[repeat(5,minmax(0,1fr))_auto] gap-2 rounded-lg border border-white/35 bg-navy/82 p-3 shadow-glow backdrop-blur-xl">
         <input aria-label={t.booking.checkIn} className={input} type="date" {...register("checkIn")} />
         <input aria-label={t.booking.checkOut} className={input} type="date" {...register("checkOut")} />
         <input aria-label={t.booking.guests} className={input} type="number" min={1} {...register("guests")} />
@@ -45,7 +45,7 @@ export function BookingBar({
           {contactOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
         <Button type="submit" className="px-4"><CalendarCheck size={17} /> {t.booking.openForm}</Button>
-        {errorMessage ? <p className="col-span-full text-xs font-bold text-warmSand">{errorMessage}</p> : null}
+        {errorMessage ? <p className="col-span-full text-xs font-bold text-champagne">{errorMessage}</p> : null}
       </form>
     </section>
   );

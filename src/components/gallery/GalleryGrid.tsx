@@ -34,7 +34,7 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
   }
 
   if (!images.length || !active) {
-    return <p className="rounded-lg bg-white/70 p-6 text-center text-greenGray">{t.gallery.empty}</p>;
+    return <p className="rounded-lg bg-white/70 p-6 text-center text-slate">{t.gallery.empty}</p>;
   }
 
   return (
@@ -61,10 +61,10 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
               className="object-cover transition duration-700 group-hover:scale-[1.025]"
               priority={active.priority}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-treeGreen/82 via-treeGreen/12 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/82 via-navy/12 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full bg-warmSand px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-treeGreen">
+                <span className="rounded-full bg-champagne px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-navy">
                   {t.gallery.featured}
                 </span>
                 <span className="rounded-full border border-white/25 bg-white/12 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-white">
@@ -78,12 +78,12 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
           </button>
 
           <div className="absolute left-4 top-1/2 flex -translate-y-1/2 gap-2">
-            <button type="button" onClick={() => move(-1)} className="focus-ring grid h-11 w-11 place-items-center rounded-full bg-treeGreen/70 text-white backdrop-blur" aria-label={t.actions.previous}>
+            <button type="button" onClick={() => move(-1)} className="focus-ring grid h-11 w-11 place-items-center rounded-full bg-navy/70 text-white backdrop-blur" aria-label={t.actions.previous}>
               <ChevronLeft size={20} />
             </button>
           </div>
           <div className="absolute right-4 top-1/2 flex -translate-y-1/2 gap-2">
-            <button type="button" onClick={() => move(1)} className="focus-ring grid h-11 w-11 place-items-center rounded-full bg-treeGreen/70 text-white backdrop-blur" aria-label={t.actions.next}>
+            <button type="button" onClick={() => move(1)} className="focus-ring grid h-11 w-11 place-items-center rounded-full bg-navy/70 text-white backdrop-blur" aria-label={t.actions.next}>
               <ChevronRight size={20} />
             </button>
           </div>
@@ -94,7 +94,7 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
 
         <aside className="grid gap-4">
           <div className="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur">
-            <div className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-warmSand">
+            <div className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-champagne">
               <Images size={16} /> {t.gallery.story}
             </div>
             <div className="grid gap-3">
@@ -120,8 +120,8 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
       </div>
 
       <div className="mt-5">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-warmSand">{t.gallery.film}</p>
-        <div className="flex snap-x gap-3 overflow-x-auto pb-3">
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-champagne">{t.gallery.film}</p>
+        <div className="flex min-w-0 snap-x gap-3 overflow-x-auto pb-3">
           {images.map((image, index) => (
             <button
               type="button"
@@ -129,12 +129,12 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
               onClick={() => setActiveIndex(index)}
               className={cn(
                 "focus-ring group relative h-24 w-36 shrink-0 snap-start overflow-hidden rounded-lg border transition md:h-28 md:w-44",
-                index === activeIndex ? "border-warmSand opacity-100" : "border-white/15 opacity-65 hover:opacity-100"
+                index === activeIndex ? "border-champagne opacity-100" : "border-white/15 opacity-65 hover:opacity-100"
               )}
               aria-label={`${t.actions.openPhoto}: ${image.alt[locale]}`}
             >
               <Image src={image.src} alt={image.alt[locale]} fill sizes="11rem" className="object-cover transition group-hover:scale-105" loading="lazy" />
-              <span className="absolute bottom-1 left-1 rounded-full bg-treeGreen/70 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur">
+              <span className="absolute bottom-1 left-1 rounded-full bg-navy/70 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur">
                 {t.gallery[image.category]}
               </span>
             </button>
@@ -154,11 +154,11 @@ export function GalleryGrid({ t, locale }: { t: Dictionary; locale: Locale }) {
               onClick={() => setFilter(category)}
               className={cn(
                 "focus-ring group relative aspect-[4/3] overflow-hidden rounded-lg border text-left shadow-soft",
-                filter === category ? "border-warmSand" : "border-white/12"
+                filter === category ? "border-champagne" : "border-white/12"
               )}
             >
               <Image src={cover.src} alt={cover.alt[locale]} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-              <span className="absolute inset-0 bg-gradient-to-t from-treeGreen/85 via-treeGreen/10 to-transparent" />
+              <span className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/10 to-transparent" />
               <span className="absolute bottom-4 left-4 right-4">
                 <span className="block font-display text-2xl text-white">{t.gallery[category]}</span>
                 <span className="mt-1 block text-sm text-white/68">{count} {t.gallery.photos}</span>

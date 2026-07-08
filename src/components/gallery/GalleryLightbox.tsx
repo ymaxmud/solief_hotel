@@ -34,7 +34,7 @@ export function GalleryLightbox({ images, index, setIndex, onClose, locale, t }:
 
   if (!image) return null;
   return (
-    <div className="fixed inset-0 z-[85] grid place-items-center bg-treeGreen/92 p-4 text-white backdrop-blur" role="dialog" aria-modal="true" aria-label={image.alt[locale]}>
+    <div className="fixed inset-0 z-[85] grid place-items-center bg-navy/92 p-4 text-white backdrop-blur" role="dialog" aria-modal="true" aria-label={image.alt[locale]}>
       <button ref={closeRef} className="focus-ring absolute right-4 top-4 rounded-full bg-white/10 p-3" onClick={onClose} aria-label={t.actions.close}><X /></button>
       <button className="focus-ring absolute left-4 top-1/2 rounded-full bg-white/10 p-3" onClick={() => setIndex((index - 1 + images.length) % images.length)} aria-label={t.actions.previous}><ChevronLeft /></button>
       <figure className="w-full max-w-5xl">

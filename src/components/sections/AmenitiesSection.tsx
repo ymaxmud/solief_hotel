@@ -13,10 +13,12 @@ export function AmenitiesSection({ t, locale }: { t: Dictionary; locale: Locale 
           {amenities.map((amenity) => {
             const Icon = (Icons as unknown as Record<string, Icons.LucideIcon>)[amenity.icon] || Icons.Circle;
             return (
-              <article key={amenity.id} className="rounded-lg border border-charcoal/10 bg-white/75 p-5 shadow-soft backdrop-blur transition hover:-translate-y-1 hover:bg-white">
-                <Icon className="text-hotelBlue" size={24} />
-                <h3 className="mt-4 font-display text-xl text-charcoal">{amenity.title[locale]}</h3>
-                <p className="mt-2 text-sm leading-6 text-greenGray">{amenity.description[locale]}</p>
+              <article key={amenity.id} className="rounded-2xl border border-line bg-white p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-glow">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-mist text-oxford">
+                  <Icon size={20} />
+                </span>
+                <h3 className="mt-4 font-display text-xl text-ink">{amenity.title[locale]}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{amenity.description[locale]}</p>
               </article>
             );
           })}

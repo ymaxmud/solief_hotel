@@ -11,7 +11,7 @@ export function StorySection({ t, locale }: { t: Dictionary; locale: Locale }) {
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[.9fr_1.1fr] md:items-center">
         <div>
           <SectionHeading title={t.sections.story} />
-          <p className="text-xl leading-9 text-greenGray">{t.story}</p>
+          <p className="text-lg leading-9 text-slate">{t.story}</p>
         </div>
         <div className="relative aspect-[4/5] overflow-hidden rounded-lg shadow-glow md:aspect-[5/4]">
           <Image src={image.src} alt={image.alt[locale]} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />

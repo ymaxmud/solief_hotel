@@ -82,8 +82,8 @@ export function BookingRequestForm({
     }
   }
 
-  const inputClass = "focus-ring min-h-11 rounded-lg border border-charcoal/15 bg-white/85 px-3 text-sm text-charcoal";
-  const labelClass = "grid gap-1 text-sm font-semibold text-greenGray";
+  const inputClass = "focus-ring min-h-11 w-full min-w-0 rounded-lg border border-line bg-white px-3 text-sm text-ink";
+  const labelClass = "grid min-w-0 gap-1 text-sm font-semibold text-slate";
   const contactOptions = [
     { value: "Phone", label: t.booking.contactPhone },
     { value: "Email", label: t.booking.contactEmail },
@@ -126,32 +126,32 @@ export function BookingRequestForm({
         <textarea className={`${inputClass} min-h-28 py-3`} {...register("message")} />
       </label>
       {Object.values(errors).length ? (
-        <div className="rounded-lg border border-coralBase/25 bg-coralBase/10 p-3 text-sm text-coralBase">
+        <div className="rounded-lg border border-slate/30 bg-mist p-3 text-sm text-ink">
           <p>{t.booking.checkFields}</p>
           {errors.checkOut ? <p className="mt-1">{t.booking.dateOrder}</p> : null}
         </div>
       ) : null}
       {submitError ? (
-        <div className="rounded-lg border border-coralBase/25 bg-coralBase/10 p-3 text-sm text-coralBase">
+        <div className="rounded-lg border border-slate/30 bg-mist p-3 text-sm text-ink">
           {submitError}
         </div>
       ) : null}
       {success ? (
-        <div className="rounded-lg border border-hotelBlue/25 bg-hotelBlue/10 p-3 text-sm text-greenGray">
+        <div className="rounded-lg border border-slate/25 bg-slate/10 p-3 text-sm text-slate">
           <p>{success}</p>
-          {reference ? <p className="mt-2 inline-flex items-center gap-2 font-bold text-coralBase"><Mail size={16} /> {reference}</p> : null}
+          {reference ? <p className="mt-2 inline-flex items-center gap-2 font-bold text-ink"><Mail size={16} /> {reference}</p> : null}
         </div>
       ) : null}
       {quote ? (
-        <p className="rounded-lg border border-hotelBlue/20 bg-hotelBlue/5 p-3 text-sm text-greenGray">
-          {t.booking.estimatedTotal}: <span className="font-bold text-coralBase">{formatPrice(quote.totalUzs, "UZS", locale)}</span>
-          <span className="text-greenGray/70"> · {quote.nights} × {formatPrice(quote.nightlyUzs, "UZS", locale)}</span>
+        <p className="rounded-lg border border-slate/20 bg-slate/5 p-3 text-sm text-slate">
+          {t.booking.estimatedTotal}: <span className="font-bold text-ink">{formatPrice(quote.totalUzs, "UZS", locale)}</span>
+          <span className="text-slate/70"> · {quote.nights} × {formatPrice(quote.nightlyUzs, "UZS", locale)}</span>
         </p>
       ) : null}
       <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
-      <p className="text-xs text-charcoal/55">
+      <p className="text-xs text-muted">
         {legalContent[locale].bookingConsent.before}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-coralBase underline-offset-4 hover:underline">
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-oxford underline-offset-4 hover:underline">
           {legalContent[locale].bookingConsent.link}
         </a>
         {legalContent[locale].bookingConsent.after}

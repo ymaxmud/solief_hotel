@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Dictionary } from "@/i18n/dictionary";
 import { Button } from "@/components/ui/Button";
+import { Wordmark } from "@/components/ui/Wordmark";
 
 const links = ["rooms", "gallery", "amenities", "location", "reviews", "faq", "contact"] as const;
 
@@ -28,16 +29,16 @@ export function MobileNav({ t, onBook }: { t: Dictionary; onBook: () => void }) 
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button className="focus-ring rounded-full bg-white/15 p-2 text-white backdrop-blur" onClick={() => setOpen(true)} aria-label={t.nav.openMenu}>
         <Menu size={22} />
       </button>
       {open ? (
-        <div className="fixed inset-0 z-[1000] h-dvh overflow-y-auto bg-treeGreen text-white" role="dialog" aria-modal="true" aria-label={t.nav.mobileMenu}>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(144,202,249,0.18),transparent_32%),linear-gradient(180deg,rgba(12,18,15,0.98),rgba(27,31,30,1))]" />
+        <div className="fixed inset-0 z-[1000] h-dvh overflow-y-auto bg-navy text-white" role="dialog" aria-modal="true" aria-label={t.nav.mobileMenu}>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(52,68,92,0.35),transparent_38%),linear-gradient(180deg,rgba(13,27,42,0.98),rgba(19,35,58,1))]" />
           <div className="relative min-h-dvh px-5 pb-28 pt-5">
             <div className="flex items-center justify-between">
-              <p className="font-display text-3xl leading-none">Solief Hotel</p>
+              <Wordmark tone="light" className="text-2xl" />
               <button className="focus-ring rounded-full bg-white/12 p-3 text-white shadow-soft backdrop-blur" onClick={() => setOpen(false)} aria-label={t.nav.closeMenu}>
                 <X size={24} />
               </button>
@@ -58,6 +59,7 @@ export function MobileNav({ t, onBook }: { t: Dictionary; onBook: () => void }) 
 
             <div className="mt-6 grid gap-3">
               <Button
+                variant="light"
                 className="w-full justify-center py-4 text-base"
                 onClick={() => {
                   setOpen(false);

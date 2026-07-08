@@ -38,11 +38,11 @@ export function CookieConsent({ locale }: { locale: Locale }) {
           <button
             type="button"
             onClick={accept}
-            className="focus-ring rounded-full bg-treeGreen px-4 py-2 text-xs font-semibold text-white transition hover:bg-greenGray"
+            className="focus-ring rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate"
           >
             {copy.accept}
           </button>
-          <Link href="/privacy" className="focus-ring text-xs font-semibold text-coralBase underline-offset-4 hover:underline">
+          <Link href="/privacy" className="focus-ring text-xs font-semibold text-oxford underline-offset-4 hover:underline">
             {copy.more}
           </Link>
         </div>

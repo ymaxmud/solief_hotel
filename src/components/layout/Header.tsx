@@ -5,6 +5,7 @@ import { CalendarCheck } from "lucide-react";
 import type { Currency, Locale } from "@/types";
 import type { Dictionary } from "@/i18n/dictionary";
 import { Button } from "@/components/ui/Button";
+import { Wordmark } from "@/components/ui/Wordmark";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CurrencySwitcher } from "./CurrencySwitcher";
 import { MobileNav } from "./MobileNav";
@@ -37,22 +38,22 @@ export function Header({
   }, []);
 
   return (
-    <header className={cn("fixed inset-x-0 top-0 z-50 transition", solid ? "bg-treeGreen/86 shadow-soft backdrop-blur-xl" : "bg-transparent")}>
+    <header className={cn("fixed inset-x-0 top-0 z-50 transition", solid ? "bg-navy/95 shadow-soft backdrop-blur-xl" : "bg-navy/85 backdrop-blur-md")}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
-        <a href="#top" className="focus-ring font-display text-2xl text-white">
-          Solief Hotel
+        <a href="#top" className="focus-ring" aria-label="Solief Hotel — home">
+          <Wordmark tone="light" className="text-xl sm:text-2xl" />
         </a>
-        <nav className="hidden items-center gap-5 md:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {links.map((link) => (
-            <a key={link} href={`#${link}`} className="focus-ring text-sm font-semibold text-white/88 transition hover:text-white">
+            <a key={link} href={`#${link}`} className="focus-ring text-sm font-medium text-white/80 transition hover:text-white">
               {t.nav[link]}
             </a>
           ))}
         </nav>
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <LanguageSwitcher locale={locale} onChange={setLocale} />
           <CurrencySwitcher currency={currency} onChange={setCurrency} />
-          <Button onClick={onBook} className="px-4">
+          <Button onClick={onBook} variant="light" className="px-4">
             <CalendarCheck size={17} /> {t.nav.book}
           </Button>
         </div>

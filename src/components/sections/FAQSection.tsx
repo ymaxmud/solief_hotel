@@ -26,7 +26,7 @@ export function FAQSection({ t, locale }: { t: Dictionary; locale: Locale }) {
                 >
                   {faq.question[locale]} <ChevronDown className={isOpen ? "rotate-180 transition" : "transition"} />
                 </button>
-                {isOpen ? <p id={`faq-answer-${index}`} className="px-5 pb-5 text-greenGray">{faq.answer[locale]}</p> : null}
+                {isOpen ? <p id={`faq-answer-${index}`} className="px-5 pb-5 text-slate">{faq.answer[locale]}</p> : null}
               </div>
             );
           })}

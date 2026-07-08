@@ -43,33 +43,33 @@ function RoomComparison({ t, locale, currency, onBook }: { t: Dictionary; locale
   const headers = [t.booking.roomType, t.room.maxGuests, t.room.area, t.room.bed, t.room.breakfast, t.room.priceFrom, ""];
   return (
     <div className="mt-14">
-      <h3 className="mb-5 font-display text-3xl text-charcoal">{t.sections.compare}</h3>
-      <div className="hidden overflow-hidden rounded-2xl border border-charcoal/10 bg-white/75 shadow-soft md:block">
+      <h3 className="mb-5 font-display text-3xl text-ink">{t.sections.compare}</h3>
+      <div className="hidden overflow-hidden rounded-2xl border border-line bg-white shadow-soft md:block">
         <table className="w-full text-left text-sm">
-          <thead className="bg-greenGray text-white">
+          <thead className="bg-navy text-white">
             <tr>{headers.map((h, index) => <th key={h || `col-${index}`} className="p-3">{h}</th>)}</tr>
           </thead>
           <tbody>
             {rooms.map((room) => (
-              <tr key={room.id} className="border-t border-charcoal/10">
-                <td className="p-3 font-bold">{room.name[locale]}</td>
-                <td className="p-3">{room.capacity}</td>
-                <td className="p-3">{room.areaSqm} m²</td>
-                <td className="p-3">{room.bedType[locale]}</td>
-                <td className="p-3">{room.breakfastIncluded ? "✓" : "—"}</td>
-                <td className="p-3 font-semibold text-coralBase">{formatPrice(room.priceUzs, currency, locale)}</td>
+              <tr key={room.id} className="border-t border-line">
+                <td className="p-3 font-bold text-ink">{room.name[locale]}</td>
+                <td className="p-3 text-slate">{room.capacity}</td>
+                <td className="p-3 text-slate">{room.areaSqm} m²</td>
+                <td className="p-3 text-slate">{room.bedType[locale]}</td>
+                <td className="p-3 text-slate">{room.breakfastIncluded ? "✓" : "—"}</td>
+                <td className="p-3 font-semibold text-ink">{formatPrice(room.priceUzs, currency, locale)}</td>
                 <td className="p-3"><Button onClick={() => onBook(room)} className="px-3 py-2 text-xs">{t.room.bookRoom}</Button></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="grid snap-x grid-flow-col gap-4 overflow-x-auto md:hidden">
+      <div className="grid min-w-0 snap-x grid-flow-col gap-4 overflow-x-auto pb-1 md:hidden">
         {rooms.map((room) => (
-          <div key={room.id} className="w-72 snap-start rounded-2xl bg-white/80 p-4 shadow-soft">
-            <h4 className="font-display text-xl">{room.name[locale]}</h4>
-            <p className="mt-2 text-sm text-greenGray">{room.capacity} {t.room.maxGuests} · {room.areaSqm} m² · {room.bedType[locale]}</p>
-            <p className="mt-2 text-lg font-bold text-coralBase">{formatPrice(room.priceUzs, currency, locale)} <span className="text-xs font-normal text-greenGray/70">{t.room.perNight}</span></p>
+          <div key={room.id} className="w-[18rem] max-w-[82vw] snap-start rounded-2xl border border-line bg-white p-4 shadow-soft">
+            <h4 className="font-display text-xl text-ink">{room.name[locale]}</h4>
+            <p className="mt-2 text-sm text-slate">{room.capacity} {t.room.maxGuests} · {room.areaSqm} m² · {room.bedType[locale]}</p>
+            <p className="mt-2 text-lg font-bold text-ink">{formatPrice(room.priceUzs, currency, locale)} <span className="text-xs font-normal text-muted">{t.room.perNight}</span></p>
             <Button onClick={() => onBook(room)} className="mt-4 w-full">{t.room.bookRoom}</Button>
           </div>
         ))}

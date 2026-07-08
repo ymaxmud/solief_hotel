@@ -1,24 +1,28 @@
 import Link from "next/link";
-import { MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import type { Dictionary } from "@/i18n/dictionary";
 import { siteConfig } from "@/content/siteContent";
 import { contact } from "@/content/contact";
+import { Wordmark } from "@/components/ui/Wordmark";
 
 export function Footer({ t }: { t: Dictionary }) {
   return (
-    <footer className="bg-treeGreen px-4 pb-24 pt-14 text-white md:pb-8">
+    <footer className="bg-navy px-4 pb-24 pt-16 text-white md:pb-10">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.2fr_.8fr_.8fr]">
         <div>
-          <p className="font-display text-3xl">Solief Hotel</p>
-          <p className="mt-3 max-w-md text-white/70">{t.footer.description}</p>
-          {siteConfig.demoMode ? <p className="mt-4 text-xs uppercase tracking-[0.2em] text-warmSand">{t.footer.demo}</p> : null}
+          <Wordmark tone="light" sub className="text-3xl" />
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/65">{t.footer.description}</p>
+          {siteConfig.demoMode ? <p className="mt-4 text-xs uppercase tracking-[0.2em] text-champagne">{t.footer.demo}</p> : null}
         </div>
-        <div className="grid gap-2 text-sm text-white/75">
+        <div className="grid content-start gap-2.5 text-sm text-white/70">
           <a className="inline-flex items-center gap-2 hover:text-white" href={`tel:${contact.phone.replaceAll(" ", "")}`}>
-            <Phone size={16} /> {contact.phone}
+            <Phone size={16} className="text-champagne" /> {contact.phone}
           </a>
-          <a className="inline-flex items-center gap-2 hover:text-white" href={contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
-            <MapPin size={16} /> {contact.address}
+          <a className="inline-flex items-center gap-2 hover:text-white" href={`mailto:${contact.email}`}>
+            <Mail size={16} className="text-champagne" /> {contact.email}
+          </a>
+          <a className="inline-flex items-start gap-2 hover:text-white" href={contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+            <MapPin size={16} className="mt-0.5 shrink-0 text-champagne" /> {contact.address}
           </a>
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
