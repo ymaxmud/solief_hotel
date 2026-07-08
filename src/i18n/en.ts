@@ -2,7 +2,9 @@ export const en = {
   nav: { rooms: "Rooms", gallery: "Gallery", amenities: "Amenities", location: "Location", reviews: "Reviews", faq: "FAQ", contact: "Contact", book: "Book / Request", openMenu: "Open menu", closeMenu: "Close menu", mobileMenu: "Mobile menu" },
   hero: {
     eyebrow: "Boutique comfort in Chilanzar, Tashkent",
-    title: "A calm and refined stay in Tashkent",
+    titlePre: "A calm and ",
+    titleAccent: "refined",
+    titlePost: " stay in Tashkent",
     subtitle: "European boutique elegance with the warmth of a cozy family hotel.",
     supporting: "Comfortable rooms, warm hospitality, breakfast included, and direct booking support from the hotel team.",
     trustLine: "4.2 Google rating · 75 reviews · Check-in 14:00 · Check-out 12:00",

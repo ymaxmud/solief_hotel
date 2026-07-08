@@ -1,4 +1,4 @@
-import type { HotelImage, ImageCategory } from "@/types";
+import type { HeroSlide, HotelImage, ImageCategory } from "@/types";
 
 // Category per image, based on what each photo actually shows. Keep this the
 // editable source of truth; if you swap the underlying files, re-check these.
@@ -88,30 +88,17 @@ export const heroImage: HotelImage = {
   }
 };
 
-// Curated hero carousel — a calm, boutique image story (exterior → room →
-// lobby → lounge → breakfast). Uses confirmed on-disk assets only.
-export const heroSlides: HotelImage[] = [
-  heroImage,
+// Curated hero carousel — a calm, boutique image story told only with the
+// high-resolution assets (low-res room shots stay in the room cards where
+// they render small). objectPosition tunes each crop for the arched frame.
+export const heroSlides: HeroSlide[] = [
   {
-    id: 101,
-    src: "/rooms/twin-suite/01-room.jpg",
-    category: "rooms",
-    priority: false,
-    alt: {
-      en: "Twin Suite guest room at Solief Hotel, Tashkent",
-      ru: "Номер Twin Suite в отеле Solief, Ташкент",
-      uz: "Solief mehmonxonasidagi Twin Suite xonasi, Toshkent"
-    }
-  },
-  {
-    id: 102,
-    src: "/images/1.png",
-    category: "lobby",
-    priority: false,
-    alt: {
-      en: "Reception and lobby at Solief Hotel",
-      ru: "Ресепшн и лобби отеля Solief",
-      uz: "Solief mehmonxonasi qabulxonasi va lobbisi"
+    ...heroImage,
+    objectPosition: "38% 62%",
+    caption: {
+      en: "The facade on Naqqoshlik",
+      ru: "Фасад на Наққошлик",
+      uz: "Naqqoshlikdagi fasad"
     }
   },
   {
@@ -119,21 +106,67 @@ export const heroSlides: HotelImage[] = [
     src: "/rooms/shared/coffee-zone.jpg",
     category: "amenities",
     priority: false,
+    objectPosition: "50% 42%",
     alt: {
-      en: "Guest coffee and lounge area at Solief Hotel",
-      ru: "Кофе-зона и лаундж для гостей отеля Solief",
-      uz: "Solief mehmonxonasi mehmonlar uchun qahva va dam olish zonasi"
+      en: "Guest tea corner with an Uzbek painting at Solief Hotel",
+      ru: "Чайный уголок с узбекской картиной в отеле Solief",
+      uz: "Solief mehmonxonasida o‘zbek surati bilan choy burchagi"
+    },
+    caption: {
+      en: "The tea corner",
+      ru: "Чайный уголок",
+      uz: "Choy burchagi"
     }
   },
   {
-    id: 104,
-    src: "/images/8.png",
-    category: "dining",
+    id: 105,
+    src: "/images/17.png",
+    category: "lobby",
     priority: false,
+    objectPosition: "22% 58%",
     alt: {
-      en: "Breakfast and dining area at Solief Hotel",
-      ru: "Завтрак и обеденная зона отеля Solief",
-      uz: "Solief mehmonxonasi nonushta va ovqatlanish zonasi"
+      en: "Reception and lounge at Solief Hotel",
+      ru: "Ресепшн и лаундж отеля Solief",
+      uz: "Solief mehmonxonasi qabulxonasi va launji"
+    },
+    caption: {
+      en: "Reception & lounge",
+      ru: "Ресепшн и лаундж",
+      uz: "Qabulxona va launj"
+    }
+  },
+  {
+    id: 106,
+    src: "/images/26.png",
+    category: "kitchen",
+    priority: false,
+    objectPosition: "24% 58%",
+    alt: {
+      en: "Breakfast buffet at Solief Hotel",
+      ru: "Завтрак «шведский стол» в отеле Solief",
+      uz: "Solief mehmonxonasida nonushta bufeti"
+    },
+    caption: {
+      en: "Breakfast, included",
+      ru: "Завтрак включён",
+      uz: "Nonushta kiritilgan"
+    }
+  },
+  {
+    id: 107,
+    src: "/rooms/shared/kitchen-bar.jpg",
+    category: "amenities",
+    priority: false,
+    objectPosition: "32% 52%",
+    alt: {
+      en: "Guest tea and coffee station at Solief Hotel",
+      ru: "Чайно-кофейная станция для гостей отеля Solief",
+      uz: "Solief mehmonxonasida mehmonlar uchun choy-qahva burchagi"
+    },
+    caption: {
+      en: "The guest kitchen",
+      ru: "Гостевая кухня",
+      uz: "Mehmonlar oshxonasi"
     }
   }
 ];

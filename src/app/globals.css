@@ -53,6 +53,21 @@ body {
   @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oxford focus-visible:ring-offset-2;
 }
 
+/* Slow cinematic zoom for the active hero slide. Disabled automatically by the
+   prefers-reduced-motion block below (animation-duration → 0.01ms). */
+@keyframes hero-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.hero-kenburns {
+  animation: hero-kenburns 8s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

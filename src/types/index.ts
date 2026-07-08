@@ -20,6 +20,13 @@ export type HotelImage = {
   alt: LocalizedText;
 };
 
+export type HeroSlide = HotelImage & {
+  /** Short editorial caption shown under the hero frame. */
+  caption: LocalizedText;
+  /** CSS object-position fine-tuning the crop inside the arched frame. */
+  objectPosition?: string;
+};
+
 export type RoomImage = { src: string; alt: LocalizedText };
 
 export type Room = {
