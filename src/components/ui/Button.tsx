@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 type Variant = "primary" | "secondary" | "ghost" | "light";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-coralBase text-white shadow-soft hover:bg-[#8f3c48]",
-  secondary: "bg-treeGreen text-white shadow-soft hover:bg-greenGray",
+  primary: "bg-oxford text-white shadow-soft hover:bg-navy",
+  secondary: "bg-navy text-white shadow-soft hover:bg-slate",
   ghost: "border border-white/35 bg-white/10 text-white backdrop-blur hover:bg-white/20",
-  light: "border border-charcoal/10 bg-white/75 text-charcoal backdrop-blur hover:bg-white"
+  light: "border border-ink/15 bg-white/80 text-ink backdrop-blur hover:bg-white"
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; children: ReactNode }>(function Button({

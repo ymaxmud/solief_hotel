@@ -11,8 +11,8 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-24 text-center">
-      <p className="font-display text-6xl font-bold text-coralBase">Oops</p>
-      <h1 className="font-display text-2xl font-semibold text-treeGreen sm:text-3xl">Something went wrong</h1>
+      <p className="font-display text-6xl font-bold text-oxford">Oops</p>
+      <h1 className="font-display text-2xl font-semibold text-navy sm:text-3xl">Something went wrong</h1>
       <p className="max-w-md text-charcoal/70">
         An unexpected error occurred while loading this page. You can try again, or return to the homepage.
       </p>

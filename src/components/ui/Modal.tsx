@@ -58,12 +58,12 @@ export function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-treeGreen/70 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => {
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-navy/70 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <div ref={panelRef} className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-[#f7f4ed] p-5 shadow-glow md:p-8">
+      <div ref={panelRef} className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-line bg-canvas p-5 shadow-glow md:p-8">
         <div className="mb-5 flex items-center justify-between gap-4">
-          <h2 id="modal-title" className="font-display text-2xl text-charcoal md:text-3xl">{title}</h2>
+          <h2 id="modal-title" className="font-display text-2xl text-ink md:text-3xl">{title}</h2>
           <Button ref={closeButtonRef} type="button" variant="light" onClick={onClose} aria-label={closeLabel} className="h-11 w-11 px-0">
             <X size={18} />
           </Button>

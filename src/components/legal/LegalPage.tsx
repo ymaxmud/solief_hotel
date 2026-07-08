@@ -49,7 +49,7 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
     <>
       <header className="border-b border-charcoal/10 bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
-          <Link href="/" className="focus-ring font-display text-xl font-semibold text-treeGreen">
+          <Link href="/" className="focus-ring font-display text-xl font-semibold text-navy">
             Solief Hotel
           </Link>
           <div className="flex items-center gap-1" role="group" aria-label="Language">
@@ -60,7 +60,7 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
                 onClick={() => setLocale(code)}
                 aria-pressed={locale === code}
                 className={`focus-ring rounded-full px-3 py-1 text-xs font-semibold uppercase transition ${
-                  locale === code ? "bg-treeGreen text-white" : "text-charcoal/60 hover:text-charcoal"
+                  locale === code ? "bg-navy text-white" : "text-charcoal/60 hover:text-charcoal"
                 }`}
               >
                 {code}
@@ -71,10 +71,10 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-14">
-        <Link href="/" className="focus-ring text-sm text-coralBase underline-offset-4 hover:underline">
+        <Link href="/" className="focus-ring text-sm text-oxford underline-offset-4 hover:underline">
           ← {bundle.ui.backHome}
         </Link>
-        <h1 className="mt-6 font-display text-3xl font-semibold text-treeGreen sm:text-4xl">{content.title}</h1>
+        <h1 className="mt-6 font-display text-3xl font-semibold text-navy sm:text-4xl">{content.title}</h1>
         <p className="mt-2 text-xs uppercase tracking-[0.16em] text-charcoal/50">
           {bundle.ui.lastUpdated}: {legalLastUpdated}
         </p>
@@ -83,7 +83,7 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
         <div className="mt-8 space-y-8">
           {content.sections.map((section) => (
             <section key={section.heading}>
-              <h2 className="font-display text-xl font-semibold text-treeGreen">{section.heading}</h2>
+              <h2 className="font-display text-xl font-semibold text-navy">{section.heading}</h2>
               <div className="mt-3 space-y-2 text-charcoal/75">
                 {section.body.map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>

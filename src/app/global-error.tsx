@@ -23,19 +23,19 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           padding: "6rem 1.5rem",
           textAlign: "center",
           fontFamily: "system-ui, -apple-system, sans-serif",
-          background: "#f7f4ed",
-          color: "#1b1f1e"
+          background: "#f8f7f4",
+          color: "#18202b"
         }}
       >
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "#0C120F", margin: 0 }}>Something went wrong</h1>
-        <p style={{ maxWidth: "28rem", color: "rgba(27,31,30,0.7)", margin: 0 }}>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "#0D1B2A", margin: 0 }}>Something went wrong</h1>
+        <p style={{ maxWidth: "28rem", color: "#667085", margin: 0 }}>
           A critical error occurred. Please try again in a moment.
         </p>
         <button
           onClick={reset}
           style={{
             borderRadius: "9999px",
-            background: "#A14653",
+            background: "#13233A",
             color: "#fff",
             border: "none",
             padding: "0.75rem 1.5rem",

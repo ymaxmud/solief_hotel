@@ -10,16 +10,23 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Guard against horizontal overflow site-wide. `clip` (not `hidden`) so the
+   sticky BookingBar keeps working — `overflow:hidden` on the root would turn
+   it into a scroll container and break position: sticky. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 section[id] {
   scroll-margin-top: 10rem;
 }
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 15% 8%, rgba(144, 202, 249, 0.24), transparent 30rem),
-    linear-gradient(180deg, #f7f4ed 0%, #e1e6e1 38%, #f7f4ed 100%);
-  color: #1b1f1e;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f7f4 100%);
+  color: #18202b;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
@@ -28,22 +35,22 @@ body {
 }
 
 ::selection {
-  background: #a14653;
+  background: #13233a;
   color: #fff;
 }
 
 .ornament-bg {
   background-image:
-    linear-gradient(45deg, rgba(91, 150, 193, 0.12) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(161, 70, 83, 0.1) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(91, 150, 193, 0.12) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(161, 70, 83, 0.1) 75%);
+    linear-gradient(45deg, rgba(19, 35, 58, 0.06) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(200, 169, 106, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(19, 35, 58, 0.06) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(200, 169, 106, 0.1) 75%);
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
   background-size: 20px 20px;
 }
 
 .focus-ring {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coralBase focus-visible:ring-offset-2;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oxford focus-visible:ring-offset-2;
 }
 
 @media (prefers-reduced-motion: reduce) {
