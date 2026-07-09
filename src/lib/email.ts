@@ -1,6 +1,6 @@
 import type { BookingFormValues } from "@/lib/schema";
 
-export const defaultRecipient = process.env.BOOKING_EMAIL_TO || "info@soliefhotel.uz";
+export const defaultRecipient = process.env.BOOKING_EMAIL_TO || "hsolief@gmail.com";
 
 export function buildBookingEmail(data: BookingFormValues) {
   const subject = `Solief Hotel booking request — ${data.name}`;
