@@ -57,7 +57,10 @@ export function Header({
             <CalendarCheck size={17} /> {t.nav.book}
           </Button>
         </div>
-        <MobileNav t={t} onBook={onBook} />
+        <div className="flex items-center gap-2 lg:hidden">
+          <LanguageSwitcher locale={locale} onChange={setLocale} compact />
+          <MobileNav t={t} onBook={onBook} locale={locale} setLocale={setLocale} currency={currency} setCurrency={setCurrency} />
+        </div>
       </div>
     </header>
   );

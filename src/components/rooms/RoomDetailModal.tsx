@@ -53,10 +53,10 @@ function RoomDetailBody({
   const activeImage = room.images[active] ?? room.images[0];
 
   return (
-    <div className="grid gap-6">
+    <div className="grid min-w-0 gap-5">
       {/* Gallery */}
-      <div>
-        <div className="relative aspect-[16/10] overflow-hidden rounded-xl">
+      <div className="min-w-0">
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl">
           <Image src={activeImage.src} alt={activeImage.alt[locale]} fill sizes="(min-width: 768px) 640px, 100vw" className="object-cover" />
         </div>
         {room.images.length > 1 ? (
@@ -80,7 +80,7 @@ function RoomDetailBody({
       <p className="text-sm leading-6 text-slate">{room.description[locale]}</p>
 
       {/* Facts */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4">
         <Fact icon={<Users size={16} />} label={t.room.maxGuests} value={String(room.capacity)} />
         <Fact icon={<Maximize size={16} />} label={t.room.area} value={`${room.areaSqm} m²`} />
         <Fact icon={<BedDouble size={16} />} label={t.room.bed} value={room.bedType[locale]} />
@@ -96,13 +96,13 @@ function RoomDetailBody({
       </div>
 
       {/* Amenities grouped */}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid min-w-0 gap-5 sm:grid-cols-2">
         {groups.map((group) => (
-          <div key={group.category}>
-            <h3 className="font-display text-lg text-charcoal">{group.label}</h3>
+          <div key={group.category} className="min-w-0">
+            <h3 className="font-display text-lg text-ink">{group.label}</h3>
             <ul className="mt-2 grid gap-1.5 text-sm text-slate">
               {group.items.map((item) => (
-                <li key={item} className="inline-flex items-center gap-2"><Check size={14} className="text-champagne" /> {item}</li>
+                <li key={item} className="flex items-start gap-2"><Check size={14} className="mt-0.5 shrink-0 text-champagne" /> <span className="min-w-0">{item}</span></li>
               ))}
             </ul>
           </div>
@@ -128,9 +128,12 @@ function RoomDetailBody({
 
 function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-charcoal/10 bg-white/70 p-3">
-      <p className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted">{icon} {label}</p>
-      <p className="mt-1 text-sm font-semibold text-charcoal">{value}</p>
+    <div className="min-w-0 rounded-xl border border-line bg-white p-3">
+      <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted">
+        {icon ? <span className="shrink-0">{icon}</span> : null}
+        <span className="truncate">{label}</span>
+      </p>
+      <p className="mt-1 break-words text-sm font-semibold text-ink">{value}</p>
     </div>
   );
 }

@@ -3,12 +3,29 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Dictionary } from "@/i18n/dictionary";
+import type { Currency, Locale } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Wordmark } from "@/components/ui/Wordmark";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { CurrencySwitcher } from "./CurrencySwitcher";
 
 const links = ["rooms", "gallery", "amenities", "location", "reviews", "faq", "contact"] as const;
 
-export function MobileNav({ t, onBook }: { t: Dictionary; onBook: () => void }) {
+export function MobileNav({
+  t,
+  onBook,
+  locale,
+  setLocale,
+  currency,
+  setCurrency
+}: {
+  t: Dictionary;
+  onBook: () => void;
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -44,7 +61,12 @@ export function MobileNav({ t, onBook }: { t: Dictionary; onBook: () => void }) 
               </button>
             </div>
 
-            <nav className="mt-8 grid gap-2" aria-label={t.nav.mobileMenu}>
+            <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-white/12 bg-white/[0.04] p-3">
+              <LanguageSwitcher locale={locale} onChange={setLocale} />
+              <CurrencySwitcher currency={currency} onChange={setCurrency} />
+            </div>
+
+            <nav className="mt-6 grid gap-2" aria-label={t.nav.mobileMenu}>
               {links.map((link) => (
                 <a
                   key={link}
