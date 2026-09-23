@@ -6,10 +6,9 @@
  * transition; they should be removed once every deployment target is updated.
  *
  *   public (browser-safe): NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY  (legacy: NEXT_PUBLIC_SUPABASE_ANON_KEY)
- *   server-only secret:    SUPABASE_SECRET_KEY                   (legacy: SUPABASE_SERVICE_ROLE_KEY)
  *
- * The secret key must never reach the browser. It is only read by
- * getSupabaseSecretKey(), which is called from server-only modules.
+ * This module is safe to import from client components. The secret key lives in
+ * ./secret.ts, which is `server-only` so it cannot be bundled for the browser.
  *
  * Note: each `process.env.X` is written out literally rather than looked up
  * through a variable, because Next.js inlines NEXT_PUBLIC_* values at build
@@ -28,15 +27,6 @@ export function getSupabasePublishableKey() {
   if (!key) {
     throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
   }
-  return key;
-}
-
-export function getSupabaseSecretKey() {
-  if (typeof window !== "undefined") {
-    throw new Error("The Supabase secret key must never be read in the browser.");
-  }
-  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("Missing required environment variable: SUPABASE_SECRET_KEY");
   return key;
 }
 
