@@ -1,11 +1,13 @@
+"use client";
+
 import { BadgeCheck, ExternalLink, MapPin, PhoneCall, Star, Tags } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Dictionary } from "@/i18n/dictionary";
-import { contact } from "@/content/contact";
-import { siteConfig } from "@/content/siteContent";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 export function TrustSection({ t }: { t: Dictionary }) {
+  const site = useSiteData();
   const cards: { icon: LucideIcon; title: string; desc: string }[] = [
     { icon: BadgeCheck, title: t.trust.verified.title, desc: t.trust.verified.desc },
     { icon: PhoneCall, title: t.trust.contact.title, desc: t.trust.contact.desc },
@@ -26,12 +28,19 @@ export function TrustSection({ t }: { t: Dictionary }) {
                 <Star key={i} fill="currentColor" size={20} />
               ))}
             </div>
-            <p className="mt-5 font-display text-6xl leading-none">{siteConfig.rating}</p>
-            <p className="mt-2 text-sm text-white/70">
-              {t.trust.ratingLabel} · {t.hero.reviews}
-            </p>
+            {site.googleRating !== null ? (
+              <>
+                <p className="mt-5 font-display text-6xl leading-none">{site.googleRating.toFixed(1)}</p>
+                <p className="mt-2 text-sm text-white/70">
+                  {t.trust.ratingLabel}
+                  {site.googleReviewCount !== null ? ` · ${site.googleReviewCount} ${t.hero.reviews}` : ""}
+                </p>
+              </>
+            ) : (
+              <p className="mt-5 text-sm text-white/70">{t.trust.subtitle}</p>
+            )}
             <a
-              href={contact.googleMapsProfileUrl || contact.googleMapsUrl}
+              href={site.googleReviewsUrl || site.googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="focus-ring mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"

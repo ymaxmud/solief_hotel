@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { hasSupabasePublicEnv } from "@/lib/supabase/keys";
 
 function redirectToLogin(request: NextRequest) {
   const loginUrl = request.nextUrl.clone();
@@ -13,9 +14,7 @@ export async function middleware(request: NextRequest) {
   const isLoginPath = request.nextUrl.pathname === "/admin/login";
   if (!isAdminPath || isLoginPath) return response;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return redirectToLogin(request);
+  if (!hasSupabasePublicEnv()) return redirectToLogin(request);
 
   const hasSupabaseSessionCookie = request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"));
   if (!hasSupabaseSessionCookie) return redirectToLogin(request);

@@ -1,12 +1,15 @@
 import type { Locale } from "@/types";
+import { getSiteUrl } from "@/lib/site";
 import { contact } from "./contact";
 
 export const siteConfig = {
   defaultLocale: "en" as Locale,
-  demoMode: false,
   showOwnerPitch: false,
   hotelName: "Solief Hotel",
-  canonicalUrl: "https://soliefhotel.vercel.app",
+  // Derived from NEXT_PUBLIC_SITE_URL — see src/lib/site.ts.
+  canonicalUrl: getSiteUrl(),
+  // Launch fallbacks. The live site reads these from the database so the owner
+  // can update them in /admin/website without a deploy.
   rating: 4.2,
   reviewCount: 75,
   checkIn: "14:00",

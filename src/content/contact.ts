@@ -14,9 +14,10 @@ export const contact = {
   directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=41.2683062%2C69.2038021",
   // Owner-confirmed WhatsApp (mobile +998 98 362 49 49), with a prefilled booking message.
   whatsappUrl: "https://wa.me/998983624949?text=Hello%20Solief%20Hotel%2C%20I%20would%20like%20to%20request%20a%20room%20booking.",
-  // TODO: Confirm official Telegram username/link with the owner.
-  telegramUrl: "",
-  // TODO: Add official platform profiles when confirmed.
+  // Owner-confirmed official Telegram account.
+  telegramUrl: "https://t.me/soliefhotel",
+  // Not supplied by the owner. Empty values are hidden in the UI rather than
+  // rendered as dead links — do not fill these in with guesses.
   bookingComUrl: "",
   myBookingUrl: "",
   instagramUrl: "",

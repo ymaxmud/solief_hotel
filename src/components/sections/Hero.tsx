@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { MapPin, MessageCircle, Phone, Send, Star } from "lucide-react";
 import type { Dictionary } from "@/i18n/dictionary";
 import type { Locale } from "@/types";
-import { contact } from "@/content/contact";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { HeroCarousel } from "./HeroCarousel";
 
 export function Hero({ t, locale, onBook }: { t: Dictionary; locale: Locale; onBook: () => void }) {
+  const site = useSiteData();
   return (
     <section id="top" className="relative overflow-hidden bg-canvas pb-16 pt-28 md:pb-20 md:pt-32">
       {/* Ghost serif monogram — quiet depth behind the copy. */}
@@ -41,20 +42,20 @@ export function Hero({ t, locale, onBook }: { t: Dictionary; locale: Locale; onB
             <Button onClick={onBook}>
               <Send size={17} /> {t.actions.request}
             </Button>
-            <ButtonLink href={`tel:${contact.phone.replaceAll(" ", "")}`} variant="light">
+            <ButtonLink href={`tel:${site.phoneE164}`} variant="light">
               <Phone size={17} /> {t.actions.call}
             </ButtonLink>
-            {contact.whatsappUrl ? (
-              <ButtonLink href={contact.whatsappUrl} target="_blank" variant="light">
+            {site.whatsappUrl ? (
+              <ButtonLink href={site.whatsappUrl} target="_blank" variant="light">
                 <MessageCircle size={17} /> {t.actions.whatsapp}
               </ButtonLink>
             ) : null}
-            {contact.telegramUrl ? (
-              <ButtonLink href={contact.telegramUrl} target="_blank" variant="light">
+            {site.telegramUrl ? (
+              <ButtonLink href={site.telegramUrl} target="_blank" variant="light">
                 <Send size={17} /> {t.actions.telegram}
               </ButtonLink>
             ) : null}
-            <ButtonLink href={contact.googleMapsUrl} target="_blank" variant="light">
+            <ButtonLink href={site.googleMapsUrl} target="_blank" variant="light">
               <MapPin size={17} /> {t.actions.map}
             </ButtonLink>
           </div>

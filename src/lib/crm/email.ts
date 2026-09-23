@@ -1,21 +1,45 @@
 import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import type { BookingFormValues } from "@/lib/schema";
+import { absoluteUrl } from "@/lib/site";
+import type { BookingPriceSnapshot } from "@/lib/public/bookingPricing";
 
+/**
+ * Every configured recipient, de-duplicated.
+ *
+ * BOOKING_EMAIL_TO accepts a comma-separated list, and the same address often
+ * appears in more than one variable — sending one notification per duplicate
+ * would mean the owner gets the same booking twice. Comparison is
+ * case-insensitive because email local parts are matched that way in practice
+ * by the providers this hotel uses.
+ */
 export function getBookingRecipients() {
-  const recipients = [
-    process.env.BOOKING_EMAIL_TO,
-    process.env.BOOKING_EMAIL_CC,
-    process.env.HOTEL_OWNER_EMAIL
-  ]
-    .flatMap((value) => (value || "").split(","))
-    .map((value) => value.trim())
-    .filter(Boolean);
-  return Array.from(new Set(recipients));
+  const seen = new Set<string>();
+  const recipients: string[] = [];
+  for (const value of [process.env.BOOKING_EMAIL_TO, process.env.BOOKING_EMAIL_CC, process.env.HOTEL_OWNER_EMAIL]) {
+    for (const part of (value || "").split(",")) {
+      const address = part.trim();
+      if (!address) continue;
+      const key = address.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      recipients.push(address);
+    }
+  }
+  return recipients;
 }
 
-export function buildBookingNotification(reference: string, data: BookingFormValues) {
-  const adminUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://soliefhotel.vercel.app"}/admin/booking-requests`;
+function formatUzs(amount: number | null) {
+  if (amount === null) return "Not configured";
+  return `${new Intl.NumberFormat("en-US").format(Math.round(amount))} UZS`;
+}
+
+export function buildBookingNotification(
+  reference: string,
+  data: BookingFormValues,
+  snapshot?: BookingPriceSnapshot
+) {
+  const adminUrl = absoluteUrl("/admin/booking-requests");
   const subject = `New Solief Hotel booking request: ${data.name} ${data.checkIn} to ${data.checkOut}`;
   const body = [
     `Booking reference: ${reference}`,
@@ -25,13 +49,22 @@ export function buildBookingNotification(reference: string, data: BookingFormVal
     `Email: ${data.email || "Not provided"}`,
     `Check-in: ${data.checkIn}`,
     `Check-out: ${data.checkOut}`,
+    ...(snapshot ? [`Nights: ${snapshot.nights}`] : []),
     `Guests count: ${data.guests}`,
-    `Room type: ${data.roomType}`,
+    `Room type: ${snapshot?.roomLabel || data.roomType}`,
+    ...(snapshot
+      ? [
+          `Nightly rate: ${formatUzs(snapshot.nightlyPriceUzs)}`,
+          `Estimated total: ${formatUzs(snapshot.estimatedTotalUzs)} (estimate only — not a confirmed price or a payment)`
+        ]
+      : []),
     `Preferred contact: ${data.contactMethod}`,
     `Preferred language: ${data.language}`,
     "",
     "Message:",
     data.message || "No message",
+    "",
+    "This is a booking REQUEST. Confirm availability with the guest before treating it as a reservation.",
     "",
     `Admin dashboard: ${adminUrl}`
   ].join("\n");
@@ -60,9 +93,13 @@ async function sendViaSmtp(recipients: string[], subject: string, text: string, 
   return { messageId: info.messageId, accepted: info.accepted, rejected: info.rejected, response: info.response };
 }
 
-export async function sendBookingEmail(reference: string, data: BookingFormValues) {
+export async function sendBookingEmail(
+  reference: string,
+  data: BookingFormValues,
+  snapshot?: BookingPriceSnapshot
+) {
   const recipients = getBookingRecipients();
-  const notification = buildBookingNotification(reference, data);
+  const notification = buildBookingNotification(reference, data, snapshot);
 
   if (!recipients.length) {
     return {

@@ -16,6 +16,7 @@ const links = [
   ["stays", "/admin/stays"],
   ["services", "/admin/services"],
   ["rooms", "/admin/rooms"],
+  ["website", "/admin/website"],
   ["staff", "/admin/staff"],
   ["attendance", "/admin/attendance"],
   ["attendanceQr", "/admin/attendance/qr"],
@@ -30,6 +31,8 @@ export async function AdminShell({ user, children }: { user: AppUser; children: 
   const t = getAdminDictionary(locale);
   const visibleLinks = links.filter(([key]) => {
     if (["users", "auditLog"].includes(key)) return user.role === "admin";
+    // Receptionists can view the website settings page but cannot change
+    // anything there, so the link stays visible for all signed-in staff.
     if (key === "attendanceQr") return user.role === "admin" || user.role === "manager";
     return true;
   });

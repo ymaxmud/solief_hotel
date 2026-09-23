@@ -6,7 +6,7 @@ import { Users, Maximize, BedDouble, Coffee, CalendarCheck, CreditCard, Clock, P
 import type { Currency, Locale, Room } from "@/types";
 import type { Dictionary } from "@/i18n/dictionary";
 import { groupRoomAmenities } from "@/content/roomAmenities";
-import { siteConfig } from "@/content/siteContent";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { formatPrice } from "@/lib/currency";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -48,6 +48,7 @@ function RoomDetailBody({
   currency: Currency;
   onBook: (room: Room) => void;
 }) {
+  const site = useSiteData();
   const [active, setActive] = useState(0);
   const groups = groupRoomAmenities(room.amenityKeys, locale);
   const activeImage = room.images[active] ?? room.images[0];
@@ -84,7 +85,7 @@ function RoomDetailBody({
         <Fact icon={<Users size={16} />} label={t.room.maxGuests} value={String(room.capacity)} />
         <Fact icon={<Maximize size={16} />} label={t.room.area} value={`${room.areaSqm} m²`} />
         <Fact icon={<BedDouble size={16} />} label={t.room.bed} value={room.bedType[locale]} />
-        <Fact icon={null} label={t.room.priceFrom} value={`${formatPrice(room.priceUzs, currency, locale)} / ${t.room.perNight}`} />
+        <Fact icon={null} label={t.room.priceFrom} value={`${formatPrice(room.priceUzs, currency, locale, site.currencyRates)} / ${t.room.perNight}`} />
       </div>
 
       {/* Badges */}
@@ -113,8 +114,8 @@ function RoomDetailBody({
       <div className="rounded-xl border border-charcoal/10 bg-mist/50 p-4">
         <h3 className="font-display text-lg text-charcoal">{t.room.conditions}</h3>
         <ul className="mt-2 grid gap-1.5 text-sm text-slate sm:grid-cols-2">
-          <li className="inline-flex items-center gap-2"><Clock size={14} /> {t.room.checkInFrom} {siteConfig.checkIn}</li>
-          <li className="inline-flex items-center gap-2"><Clock size={14} /> {t.room.checkOutUntil} {siteConfig.checkOut}</li>
+          <li className="inline-flex items-center gap-2"><Clock size={14} /> {t.room.checkInFrom} {site.checkIn}</li>
+          <li className="inline-flex items-center gap-2"><Clock size={14} /> {t.room.checkOutUntil} {site.checkOut}</li>
           <li className="inline-flex items-center gap-2"><PawPrint size={14} /> {t.room.petsNotAllowed}</li>
           <li className="inline-flex items-center gap-2"><Ban size={14} /> {t.room.noSmoking}</li>
         </ul>

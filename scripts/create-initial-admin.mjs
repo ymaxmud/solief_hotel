@@ -1,14 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const email = process.env.INITIAL_ADMIN_EMAIL;
 const password = process.env.INITIAL_ADMIN_PASSWORD;
 const allowBootstrap = process.env.ALLOW_INITIAL_ADMIN_BOOTSTRAP === "true";
 const nodeEnv = process.env.NODE_ENV || process.env.VERCEL_ENV || "development";
 
 if (!url || !serviceKey || !email || !password) {
-  console.error("Missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, INITIAL_ADMIN_EMAIL, or INITIAL_ADMIN_PASSWORD");
+  console.error("Missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, INITIAL_ADMIN_EMAIL, or INITIAL_ADMIN_PASSWORD");
   process.exit(1);
 }
 

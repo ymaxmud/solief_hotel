@@ -24,7 +24,7 @@ export const legalContent: Record<Locale, LegalBundle> = {
   en: {
     ui: { backHome: "Back to home", lastUpdated: "Last updated", privacy: "Privacy Policy", terms: "Terms of Service" },
     cookie: {
-      text: "We use essential cookies to run this site (language preference and spam protection) and load an embedded Google Map. We do not use advertising trackers.",
+      text: "This site uses only what it needs to work: your language and currency choice, spam protection, an embedded Google Map, and privacy-friendly aggregate analytics. We do not use advertising trackers and do not sell your data.",
       accept: "Got it",
       more: "Privacy Policy"
     },
@@ -55,7 +55,8 @@ export const legalContent: Record<Locale, LegalBundle> = {
             "Vercel hosts the website.",
             "Cloudflare Turnstile provides anti-bot protection.",
             "Google Maps powers the embedded location map.",
-            "Resend delivers booking notification emails to the hotel.",
+            "Gmail (Google) delivers the booking notification email to the hotel over SMTP.",
+            "Vercel Analytics and Vercel Speed Insights collect aggregate, non-identifying page performance and traffic data.",
             "These providers process data only to deliver their service to us."
           ]
         },
@@ -63,7 +64,9 @@ export const legalContent: Record<Locale, LegalBundle> = {
           heading: "Cookies and local storage",
           body: [
             "We store your language and currency preference and a record that you have seen the cookie notice, in your browser's local storage.",
-            "The embedded Google Map and Turnstile widget may set their own cookies when loaded."
+            "The embedded Google Map and the Turnstile widget may set their own cookies when loaded.",
+            "Vercel Analytics and Speed Insights measure aggregate traffic and page performance. They do not use advertising cookies and do not identify you personally.",
+            "Hotel staff signing in to the private admin area receive a session cookie. That cookie is only set for staff accounts and never for website visitors."
           ]
         },
         {
@@ -128,7 +131,7 @@ export const legalContent: Record<Locale, LegalBundle> = {
   ru: {
     ui: { backHome: "На главную", lastUpdated: "Обновлено", privacy: "Политика конфиденциальности", terms: "Условия использования" },
     cookie: {
-      text: "Мы используем необходимые файлы cookie для работы сайта (язык и защита от спама) и загружаем встроенную карту Google. Рекламные трекеры не используются.",
+      text: "Сайт использует только необходимое для работы: выбор языка и валюты, защиту от спама, встроенную карту Google и сводную аналитику. Рекламные трекеры не используются, данные не продаются.",
       accept: "Понятно",
       more: "Политика конфиденциальности"
     },
@@ -159,7 +162,8 @@ export const legalContent: Record<Locale, LegalBundle> = {
             "Vercel обеспечивает хостинг сайта.",
             "Cloudflare Turnstile обеспечивает защиту от ботов.",
             "Google Maps используется для встроенной карты.",
-            "Resend доставляет письма-уведомления отелю.",
+            "Gmail (Google) доставляет письмо-уведомление о заявке отелю по SMTP.",
+            "Vercel Analytics и Vercel Speed Insights собирают сводные обезличенные данные о посещаемости и скорости страниц.",
             "Эти поставщики обрабатывают данные только для оказания услуги нам."
           ]
         },
@@ -167,7 +171,9 @@ export const legalContent: Record<Locale, LegalBundle> = {
           heading: "Файлы cookie и локальное хранилище",
           body: [
             "Мы сохраняем ваш выбор языка и валюты, а также отметку о показе уведомления о cookie в локальном хранилище браузера.",
-            "Встроенная карта Google и виджет Turnstile могут устанавливать собственные файлы cookie при загрузке."
+            "Встроенная карта Google и виджет Turnstile могут устанавливать собственные файлы cookie при загрузке.",
+            "Vercel Analytics и Speed Insights измеряют сводную посещаемость и скорость страниц. Они не используют рекламные cookie и не идентифицируют вас лично.",
+            "Сотрудники отеля, входящие в закрытую админ-панель, получают сессионный cookie. Он устанавливается только для сотрудников и никогда для посетителей сайта."
           ]
         },
         {
@@ -232,7 +238,7 @@ export const legalContent: Record<Locale, LegalBundle> = {
   uz: {
     ui: { backHome: "Bosh sahifaga", lastUpdated: "Yangilangan", privacy: "Maxfiylik siyosati", terms: "Foydalanish shartlari" },
     cookie: {
-      text: "Saytni ishlatish uchun zarur cookie-fayllardan (til va spamdan himoya) foydalanamiz va Google xaritasini yuklaymiz. Reklama kuzatuvchilaridan foydalanmaymiz.",
+      text: "Sayt faqat ishlash uchun zarur narsalardan foydalanadi: til va valyuta tanlovingiz, spamdan himoya, o‘rnatilgan Google xaritasi va umumlashtirilgan tahlil. Reklama kuzatuvchilaridan foydalanmaymiz va ma’lumotlaringizni sotmaymiz.",
       accept: "Tushunarli",
       more: "Maxfiylik siyosati"
     },
@@ -263,7 +269,8 @@ export const legalContent: Record<Locale, LegalBundle> = {
             "Vercel saytni joylashtiradi.",
             "Cloudflare Turnstile botlardan himoya qiladi.",
             "Google Maps o‘rnatilgan xaritani ta’minlaydi.",
-            "Resend mehmonxonaga bildirishnoma xatlarini yetkazadi.",
+            "Gmail (Google) band qilish bildirishnomasini mehmonxonaga SMTP orqali yetkazadi.",
+            "Vercel Analytics va Vercel Speed Insights sahifa tezligi va tashriflar haqida umumlashtirilgan, shaxsni aniqlamaydigan ma’lumot to‘playdi.",
             "Bu ta’minotchilar ma’lumotni faqat bizga xizmat ko‘rsatish uchun qayta ishlaydi."
           ]
         },
@@ -271,7 +278,9 @@ export const legalContent: Record<Locale, LegalBundle> = {
           heading: "Cookie va lokal xotira",
           body: [
             "Til va valyuta tanlovingizni hamda cookie bildirishnomasini ko‘rganingiz haqidagi belgini brauzeringiz lokal xotirasida saqlaymiz.",
-            "O‘rnatilgan Google xaritasi va Turnstile vidjeti yuklanganda o‘z cookie-fayllarini o‘rnatishi mumkin."
+            "O‘rnatilgan Google xaritasi va Turnstile vidjeti yuklanganda o‘z cookie-fayllarini o‘rnatishi mumkin.",
+            "Vercel Analytics va Speed Insights umumiy tashrif va sahifa tezligini o‘lchaydi. Ular reklama cookie-laridan foydalanmaydi va sizni shaxsan aniqlamaydi.",
+            "Yopiq admin panelga kiradigan mehmonxona xodimlari sessiya cookie-sini oladi. U faqat xodimlar uchun o‘rnatiladi, sayt tashrifchilari uchun hech qachon emas."
           ]
         },
         {

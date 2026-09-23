@@ -1,16 +1,22 @@
+"use client";
+
 import * as Icons from "lucide-react";
 import type { Dictionary } from "@/i18n/dictionary";
 import type { Locale } from "@/types";
 import { amenities } from "@/content/amenities";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 export function AmenitiesSection({ t, locale }: { t: Dictionary; locale: Locale }) {
+  const { activeAmenityIds } = useSiteData();
+  const active = new Set(activeAmenityIds);
+  const visible = amenities.filter((amenity) => active.has(amenity.id));
   return (
     <section id="amenities" className="px-4 py-20">
       <div className="mx-auto max-w-7xl">
         <SectionHeading title={t.sections.amenities} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {amenities.map((amenity) => {
+          {visible.map((amenity) => {
             const Icon = (Icons as unknown as Record<string, Icons.LucideIcon>)[amenity.icon] || Icons.Circle;
             return (
               <article key={amenity.id} className="rounded-2xl border border-line bg-white p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-glow">

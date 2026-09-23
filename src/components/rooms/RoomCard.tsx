@@ -6,6 +6,7 @@ import type { Currency, Locale, Room } from "@/types";
 import type { Dictionary } from "@/i18n/dictionary";
 import { amenityLabel } from "@/content/roomAmenities";
 import { formatPrice } from "@/lib/currency";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { Button } from "@/components/ui/Button";
 
 const AMENITY_PREVIEW = ["wifi", "breakfastBuffet", "ac", "smartTv", "safe"];
@@ -25,6 +26,7 @@ export function RoomCard({
   onViewDetails: (room: Room) => void;
   onBook: (room: Room) => void;
 }) {
+  const site = useSiteData();
   const image = room.images[0];
   const previewKeys = AMENITY_PREVIEW.filter((key) => room.amenityKeys.includes(key));
   const extraCount = room.amenityKeys.length - previewKeys.length;
@@ -85,7 +87,7 @@ export function RoomCard({
 
         <div className="mt-auto pt-5">
           <p className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-ink">{formatPrice(room.priceUzs, currency, locale)}</span>
+            <span className="text-2xl font-bold text-ink">{formatPrice(room.priceUzs, currency, locale, site.currencyRates)}</span>
             <span className="text-xs text-muted">{t.room.perNight}</span>
           </p>
           <div className="mt-4 flex gap-2">

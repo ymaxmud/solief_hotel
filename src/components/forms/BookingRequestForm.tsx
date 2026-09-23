@@ -6,11 +6,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Dictionary } from "@/i18n/dictionary";
 import { bookingSchema, type BookingFormValues, type QuickBookingValues } from "@/lib/schema";
-import { rooms } from "@/content/rooms";
-import { contact } from "@/content/contact";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { legalContent } from "@/content/legal";
 import { formatPrice } from "@/lib/currency";
 import { nightsBetween, quoteBooking } from "@/lib/payment";
+import { tashkentToday } from "@/lib/datetime";
 import type { Locale } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { TurnstileWidget } from "./TurnstileWidget";
@@ -24,6 +24,9 @@ export function BookingRequestForm({
   locale: Locale;
   defaults?: Partial<QuickBookingValues>;
 }) {
+  const site = useSiteData();
+  const rooms = site.rooms;
+  const today = tashkentToday();
   const [success, setSuccess] = useState("");
   const [reference, setReference] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -43,15 +46,15 @@ export function BookingRequestForm({
       checkOut: defaults?.checkOut || "",
       guests: defaults?.guests || 1,
       roomType: defaults?.roomType || rooms[0].name[locale],
-      language: locale.toUpperCase(),
+      language: locale.toUpperCase() as BookingFormValues["language"],
       contactMethod: defaults?.contactMethod || "Phone",
       message: ""
     }
   });
 
-  // Payment-ready price preview. Backend does not yet persist price/room id — the
-  // selected room is carried in `roomType`, and `roomId` is sent for forward
-  // compatibility (ignored server-side until the payments migration lands).
+  // Non-binding price preview. The server recalculates this independently from
+  // the configured category price and stores its own snapshot — the value shown
+  // here is never trusted as the booking price.
   const selectedRoom = rooms.find((room) => room.name[locale] === watch("roomType"));
   const nights = nightsBetween(watch("checkIn"), watch("checkOut"));
   const quote =
@@ -87,8 +90,8 @@ export function BookingRequestForm({
   const contactOptions = [
     { value: "Phone", label: t.booking.contactPhone },
     { value: "Email", label: t.booking.contactEmail },
-    contact.whatsappUrl ? { value: "WhatsApp", label: t.actions.whatsapp } : null,
-    contact.telegramUrl ? { value: "Telegram", label: t.actions.telegram } : null
+    site.whatsappUrl ? { value: "WhatsApp", label: t.actions.whatsapp } : null,
+    site.telegramUrl ? { value: "Telegram", label: t.actions.telegram } : null
   ].filter((option): option is { value: string; label: string } => Boolean(option));
 
   return (
@@ -97,9 +100,9 @@ export function BookingRequestForm({
         <label className={labelClass}>{t.booking.name}<input className={inputClass} {...register("name")} /></label>
         <label className={labelClass}>{t.booking.phone}<input className={inputClass} {...register("phone")} /></label>
         <label className={labelClass}>{t.booking.email}<input className={inputClass} type="email" {...register("email")} /></label>
-        <label className={labelClass}>{t.booking.guests}<input className={inputClass} type="number" min={1} {...register("guests")} /></label>
-        <label className={labelClass}>{t.booking.checkIn}<input className={inputClass} type="date" {...register("checkIn")} /></label>
-        <label className={labelClass}>{t.booking.checkOut}<input className={inputClass} type="date" {...register("checkOut")} /></label>
+        <label className={labelClass}>{t.booking.guests}<input className={inputClass} type="number" min={1} max={30} {...register("guests")} /></label>
+        <label className={labelClass}>{t.booking.checkIn}<input className={inputClass} type="date" min={today} {...register("checkIn")} /></label>
+        <label className={labelClass}>{t.booking.checkOut}<input className={inputClass} type="date" min={watch("checkIn") || today} {...register("checkOut")} /></label>
         <label className={labelClass}>
           {t.booking.roomType}
           <select className={inputClass} {...register("roomType")}>
@@ -128,6 +131,7 @@ export function BookingRequestForm({
       {Object.values(errors).length ? (
         <div className="rounded-lg border border-slate/30 bg-mist p-3 text-sm text-ink">
           <p>{t.booking.checkFields}</p>
+          {errors.checkIn ? <p className="mt-1">{t.booking.pastDate}</p> : null}
           {errors.checkOut ? <p className="mt-1">{t.booking.dateOrder}</p> : null}
         </div>
       ) : null}
@@ -146,6 +150,7 @@ export function BookingRequestForm({
         <p className="rounded-lg border border-slate/20 bg-slate/5 p-3 text-sm text-slate">
           {t.booking.estimatedTotal}: <span className="font-bold text-ink">{formatPrice(quote.totalUzs, "UZS", locale)}</span>
           <span className="text-slate/70"> · {quote.nights} × {formatPrice(quote.nightlyUzs, "UZS", locale)}</span>
+          <span className="mt-1 block text-xs text-slate/70">{t.booking.estimateNote}</span>
         </p>
       ) : null}
       <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />

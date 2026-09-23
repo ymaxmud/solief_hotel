@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Currency, Locale, Room } from "@/types";
 import type { QuickBookingValues } from "@/lib/schema";
 import type { Dictionary } from "@/i18n/dictionary";
-import { rooms } from "@/content/rooms";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { formatPrice } from "@/lib/currency";
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -14,6 +14,8 @@ import { RoomDetailModal } from "@/components/rooms/RoomDetailModal";
 type BookHandler = (defaults?: Partial<QuickBookingValues>) => void;
 
 export function RoomsSection({ t, locale, currency, onBook }: { t: Dictionary; locale: Locale; currency: Currency; onBook: BookHandler }) {
+  const site = useSiteData();
+  const { rooms } = site;
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
 
   // Preselect the chosen room (and its capacity) in the booking form, and close
@@ -40,6 +42,8 @@ export function RoomsSection({ t, locale, currency, onBook }: { t: Dictionary; l
 }
 
 function RoomComparison({ t, locale, currency, onBook }: { t: Dictionary; locale: Locale; currency: Currency; onBook: (room: Room) => void }) {
+  const site = useSiteData();
+  const { rooms } = site;
   const headers = [t.booking.roomType, t.room.maxGuests, t.room.area, t.room.bed, t.room.breakfast, t.room.priceFrom, ""];
   return (
     <div className="mt-14">
@@ -57,7 +61,7 @@ function RoomComparison({ t, locale, currency, onBook }: { t: Dictionary; locale
                 <td className="p-3 text-slate">{room.areaSqm} m²</td>
                 <td className="p-3 text-slate">{room.bedType[locale]}</td>
                 <td className="p-3 text-slate">{room.breakfastIncluded ? "✓" : "—"}</td>
-                <td className="p-3 font-semibold text-ink">{formatPrice(room.priceUzs, currency, locale)}</td>
+                <td className="p-3 font-semibold text-ink">{formatPrice(room.priceUzs, currency, locale, site.currencyRates)}</td>
                 <td className="p-3"><Button onClick={() => onBook(room)} className="px-3 py-2 text-xs">{t.room.bookRoom}</Button></td>
               </tr>
             ))}
@@ -69,7 +73,7 @@ function RoomComparison({ t, locale, currency, onBook }: { t: Dictionary; locale
           <div key={room.id} className="w-[18rem] max-w-[82vw] snap-start rounded-2xl border border-line bg-white p-4 shadow-soft">
             <h4 className="font-display text-xl text-ink">{room.name[locale]}</h4>
             <p className="mt-2 text-sm text-slate">{room.capacity} {t.room.maxGuests} · {room.areaSqm} m² · {room.bedType[locale]}</p>
-            <p className="mt-2 text-lg font-bold text-ink">{formatPrice(room.priceUzs, currency, locale)} <span className="text-xs font-normal text-muted">{t.room.perNight}</span></p>
+            <p className="mt-2 text-lg font-bold text-ink">{formatPrice(room.priceUzs, currency, locale, site.currencyRates)} <span className="text-xs font-normal text-muted">{t.room.perNight}</span></p>
             <Button onClick={() => onBook(room)} className="mt-4 w-full">{t.room.bookRoom}</Button>
           </div>
         ))}

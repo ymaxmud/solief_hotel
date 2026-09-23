@@ -32,3 +32,6 @@ supabase/.temp/
 
 # original room photo source assets (served copies live in public/rooms/)
 solief_room_photos/
+
+# playwright
+playwright-report/

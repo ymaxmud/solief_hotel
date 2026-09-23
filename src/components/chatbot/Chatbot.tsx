@@ -4,12 +4,13 @@ import { MessageCircle, Phone, Send, X } from "lucide-react";
 import { useState } from "react";
 import type { Dictionary } from "@/i18n/dictionary";
 import type { Locale } from "@/types";
-import { contact } from "@/content/contact";
+import { useSiteData } from "@/components/SiteDataProvider";
 import { getChatAnswer, type ChatTopic } from "./chatbotData";
 
 type ChatMessage = { from: "bot" | "user"; text: string };
 
 export function Chatbot({ t, locale, onBook }: { t: Dictionary; locale: Locale; onBook: () => void }) {
+  const site = useSiteData();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([{ from: "bot", text: t.chatbot.intro }]);
   const topics = Object.keys(t.chatbot.quick) as ChatTopic[];
@@ -39,9 +40,9 @@ export function Chatbot({ t, locale, onBook }: { t: Dictionary; locale: Locale; 
             {topics.map((topic) => <button key={topic} className="focus-ring rounded-full bg-mist px-3 py-2 text-xs font-bold text-slate" onClick={() => ask(topic)}>{t.chatbot.quick[topic]}</button>)}
           </div>
           <div className="grid grid-cols-3 gap-2 p-3 pt-0">
-            <a className="focus-ring rounded-full bg-navy px-3 py-2 text-center text-xs font-bold text-white" href={`tel:${contact.phone.replaceAll(" ", "")}`} aria-label={t.actions.call}><Phone size={15} className="mx-auto" /></a>
+            <a className="focus-ring rounded-full bg-navy px-3 py-2 text-center text-xs font-bold text-white" href={`tel:${site.phoneE164}`} aria-label={t.actions.call}><Phone size={15} className="mx-auto" /></a>
             <button className="focus-ring rounded-full bg-oxford px-3 py-2 text-xs font-bold text-white" onClick={onBook}>{t.nav.book}</button>
-            <a className="focus-ring rounded-full bg-slate px-3 py-2 text-center text-xs font-bold text-white" href={contact.googleMapsUrl} target="_blank" rel="noopener noreferrer" aria-label={t.actions.map}><Send size={15} className="mx-auto" /></a>
+            <a className="focus-ring rounded-full bg-slate px-3 py-2 text-center text-xs font-bold text-white" href={site.googleMapsUrl} target="_blank" rel="noopener noreferrer" aria-label={t.actions.map}><Send size={15} className="mx-auto" /></a>
           </div>
         </div>
       ) : null}

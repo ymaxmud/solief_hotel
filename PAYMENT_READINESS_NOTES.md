@@ -1,8 +1,12 @@
 # Payment Readiness Notes
 
-The site is **payment-ready in structure but charges nothing**. No payment gateway is
-connected. This document describes what exists today and the exact steps to enable
-real payments later (Click, Payme, Stripe, etc.).
+**No payment system is connected, and connecting one is not planned.** Solief Hotel
+takes booking *requests* and confirms them with the guest directly; nothing on the site
+charges a card, collects a deposit, or depends on a payment provider.
+
+This file exists only to record the pricing shapes already in the codebase and what
+would be involved if the hotel ever decided otherwise. It is not a roadmap, and no work
+here is outstanding.
 
 ## What exists today
 
@@ -14,18 +18,27 @@ real payments later (Click, Payme, Stripe, etc.).
   - `BookingQuote` — room id/name, nightly UZS, nights, guests, currency, total UZS
   - `PaymentIntent` — future record shape (quote + status + provider + reference)
   - `nightsBetween(checkIn, checkOut)` and `quoteBooking(...)`
-- **Booking form** (`src/components/forms/BookingRequestForm.tsx`) computes and shows an
-  estimated total from the selected room + dates, and sends `roomId` (room slug) in the
-  POST body for forward compatibility.
-- **`roomId`** is accepted by `bookingSchema` (`src/lib/schema.ts`) but **not yet
-  persisted** — the public booking RPC currently stores only `roomType` (the name).
+- **Booking form** (`src/components/forms/BookingRequestForm.tsx`) shows a non-binding
+  estimated total from the selected room + dates, labelled as an estimate, and sends
+  `roomId` (the room-category slug) in the POST body.
 
-## What is NOT done (intentionally)
+## What the server now does (implemented)
 
-- No provider SDK, no checkout, no webhooks, no charge.
-- `roomId`, price, nights, and totals are **not stored** in the database.
+- The booking API resolves `roomId` against the **active** room categories in the
+  database, rejects anything that does not match, and recalculates the price itself. A
+  price sent by the browser is ignored.
+- `booking_requests` stores a price snapshot: `room_category_id`, `nightly_price_uzs`,
+  `nights`, `estimated_total_uzs`. Changing a room price later never rewrites what an
+  existing request was quoted.
+- These values are an **estimate**, not a payment and not a confirmed reservation. The
+  public site, the notification email and the CRM all say so.
 
-## Database work required to enable payments
+## What is NOT done (intentionally, and not planned)
+
+- No provider SDK, no checkout page, no webhooks, no charge, no deposit.
+- No Stripe, Click or Payme dependency anywhere in the project.
+
+## If payments were ever added (reference only)
 
 The project uses Supabase migrations under `supabase/migrations/`. Add a **new** migration
 (do not edit existing ones). Suggested changes:

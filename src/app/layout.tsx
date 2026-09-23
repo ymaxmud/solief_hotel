@@ -3,7 +3,9 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import { siteConfig } from "@/content/siteContent";
+import { contact } from "@/content/contact";
+import { getSiteUrl } from "@/lib/site";
+import { getPublicSiteData } from "@/lib/public/siteData";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -17,24 +19,31 @@ const playfair = Playfair_Display({
   display: "swap"
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.canonicalUrl),
+  metadataBase: new URL(siteUrl),
   title: "Solief Hotel Tashkent — A Quiet Boutique Stay in Chilanzar",
   description:
     "A calm, refined boutique hotel in the Chilanzar district of Tashkent. Comfortable rooms, breakfast included, warm hospitality, and direct booking with the hotel team.",
   alternates: {
-    canonical: "/",
-    languages: {
-      en: "/?lang=en",
-      ru: "/?lang=ru",
-      uz: "/?lang=uz"
-    }
+    canonical: "/"
   },
+  // No hreflang alternates, deliberately.
+  //
+  // The site is one document whose language is switched in the browser via
+  // ?lang=, so the server returns identical HTML for /?lang=en, /?lang=ru and
+  // /?lang=uz. Declaring those as language alternates would tell search engines
+  // that three distinct localized documents exist when they do not, and Next.js
+  // strips the query string from alternates anyway, which would emit three
+  // identical links. One canonical URL is the truthful model here. Real
+  // per-language URLs would need localized routes, which is a larger change than
+  // this production pass should make.
   openGraph: {
     title: "Solief Hotel Tashkent — A Quiet Boutique Stay in Chilanzar",
     description:
       "European boutique elegance with the warmth of a family hotel in Tashkent. Comfortable rooms, breakfast included, and direct booking.",
-    url: siteConfig.canonicalUrl,
+    url: siteUrl,
     siteName: "Solief Hotel",
     images: [{ url: "/og.jpg", width: 1200, height: 588, alt: "Solief Hotel in Chilanzar district, Tashkent" }],
     locale: "en_US",
@@ -52,11 +61,13 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const schema = {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const site = await getPublicSiteData();
+
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Hotel",
-    name: siteConfig.hotelName,
+    name: site.hotelName,
     address: {
       "@type": "PostalAddress",
       streetAddress: "Naqqoshlik 12",
@@ -64,22 +75,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       addressLocality: "Tashkent",
       addressCountry: "UZ"
     },
-    telephone: siteConfig.contact.phone,
-    hasMap: siteConfig.contact.googleMapsProfileUrl,
+    telephone: site.phoneE164,
+    email: site.email,
+    hasMap: site.googleReviewsUrl || site.googleMapsUrl,
     geo: {
       "@type": "GeoCoordinates",
-      latitude: siteConfig.contact.coordinates.lat,
-      longitude: siteConfig.contact.coordinates.lng
+      latitude: contact.coordinates.lat,
+      longitude: contact.coordinates.lng
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: siteConfig.rating,
-      reviewCount: siteConfig.reviewCount
-    },
-    checkinTime: siteConfig.checkIn,
-    checkoutTime: siteConfig.checkOut,
-    url: siteConfig.canonicalUrl
+    checkinTime: site.checkIn,
+    checkoutTime: site.checkOut,
+    url: siteUrl
   };
+
+  // Only publish an aggregate rating when the hotel has entered a real one.
+  // An invented or partial rating in structured data is a Google penalty risk,
+  // so the property is omitted rather than guessed.
+  if (site.googleRating !== null && site.googleReviewCount !== null && site.googleReviewCount > 0) {
+    schema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: site.googleRating,
+      reviewCount: site.googleReviewCount,
+      bestRating: 5,
+      worstRating: 1
+    };
+  }
 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>

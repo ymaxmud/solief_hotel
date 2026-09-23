@@ -18,6 +18,3 @@ export function buildWhatsAppBookingLink(reference: string, data: BookingFormVal
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(summary)}`;
 }
-
-// TODO: Future optional Meta WhatsApp Cloud API integration can read dedicated
-// server-only env vars here. It is intentionally disabled in v1.

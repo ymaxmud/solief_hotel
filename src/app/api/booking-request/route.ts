@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { bookingSchema } from "@/lib/schema";
+import { buildBookingSnapshot } from "@/lib/public/bookingPricing";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { createBookingReference } from "@/lib/crm/reference";
 import { sendBookingEmail } from "@/lib/crm/email";
@@ -17,8 +18,17 @@ type BookingRequestResult = {
   public_reference: string;
 };
 
+// Nodemailer needs Node APIs, so this route must not run on the Edge runtime.
+export const runtime = "nodejs";
+
 export async function POST(request: Request) {
-  const json = await request.json();
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid request body." }, { status: 400 });
+  }
+
   const parsed = bookingSchema.safeParse(json);
 
   if (!parsed.success) {
@@ -52,6 +62,25 @@ export async function POST(request: Request) {
     );
   }
 
+  // Resolve the room and recalculate the price server-side. A slug that does
+  // not match an active category is rejected rather than stored, so a booking
+  // can never be recorded against a room the hotel does not offer.
+  const snapshot = await buildBookingSnapshot(service, {
+    roomId: booking.roomId,
+    roomType: booking.roomType,
+    checkIn: booking.checkIn,
+    checkOut: booking.checkOut
+  });
+  if (!snapshot) {
+    return NextResponse.json({ ok: false, error: "Please choose one of the available rooms." }, { status: 400 });
+  }
+  if (snapshot.capacity !== null && booking.guests > snapshot.capacity) {
+    return NextResponse.json(
+      { ok: false, error: `This room takes up to ${snapshot.capacity} guests. Please contact the hotel for a larger group.` },
+      { status: 400 }
+    );
+  }
+
   const { data: bookingRequest, error: bookingError } = await service
     .rpc("create_public_booking_request", {
       p_reference: reference,
@@ -65,16 +94,31 @@ export async function POST(request: Request) {
       p_preferred_contact: booking.contactMethod,
       p_preferred_language: booking.language,
       p_message: booking.message || null,
-      p_source: "website"
+      p_source: "website",
+      p_room_category_id: snapshot.roomCategoryId,
+      p_nightly_price_uzs: snapshot.nightlyPriceUzs,
+      p_nights: snapshot.nights,
+      p_estimated_total_uzs: snapshot.estimatedTotalUzs
     })
     .single();
 
   if (bookingError) {
+    // Persistence failed, so the guest must NOT be told the request was
+    // received. Log with enough context to investigate, without the guest's
+    // contact details.
+    console.error("[booking-request] Could not persist booking request", {
+      reference,
+      roomCategoryId: snapshot.roomCategoryId,
+      error: bookingError.message
+    });
     return NextResponse.json({ ok: false, error: "Could not save booking request." }, { status: 500 });
   }
   const createdBooking = bookingRequest as BookingRequestResult;
 
-  const emailResult = await sendBookingEmail(reference, booking);
+  // From here the booking is saved. Notification failure must never turn into a
+  // failure response — the guest gets their reference either way, and the
+  // notification row records the delivery status for staff follow-up.
+  const emailResult = await sendBookingEmail(reference, booking, snapshot);
   const { error: notificationError } = await service.from("notifications").insert(
     emailResult.recipients.length
       ? emailResult.recipients.map((recipient) => ({

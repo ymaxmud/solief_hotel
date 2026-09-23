@@ -136,3 +136,73 @@ export const roomUpdateSchema = z.object({
   cleaningStatus: z.enum(["clean", "dirty", "in_progress", "inspected"]).optional(),
   notes: z.string().optional()
 });
+
+// --- Public website settings -----------------------------------------------
+// These drive what visitors see on the public site, so every field is validated
+// here as well as by a database constraint. A URL must be http(s): the public
+// renderer rejects anything else, and catching it at entry gives the admin a
+// clear error instead of a silently ignored value.
+
+const optionalHttpUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .refine(
+    (value) => {
+      if (!value) return true;
+      try {
+        const url = new URL(value);
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Enter a full http(s) link, or leave the field empty." }
+  )
+  .optional()
+  .or(z.literal(""));
+
+const timeOfDay = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use a 24-hour time such as 14:00");
+
+export const websiteSettingsSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(2).max(120).optional(),
+  phone: z.string().trim().min(5).max(40).optional(),
+  email: z.string().trim().email("Enter a valid email address").max(160).optional().or(z.literal("")),
+  address: z.string().trim().min(5).max(300).optional(),
+  whatsappUrl: optionalHttpUrl,
+  telegramUrl: optionalHttpUrl,
+  googleMapsUrl: optionalHttpUrl,
+  googleReviewsUrl: optionalHttpUrl,
+  checkInTime: timeOfDay.optional(),
+  checkOutTime: timeOfDay.optional(),
+  // A rating outside 0–5 or a negative review count would be published straight
+  // into the page's structured data, so both are bounded here.
+  googleRating: z.coerce.number().min(0, "Rating cannot be negative").max(5, "Rating cannot be above 5").optional(),
+  googleReviewCount: z.coerce.number().int().min(0, "Review count cannot be negative").max(1_000_000).optional(),
+  // Rates are "UZS per 1 unit". Zero or negative would make the public price a
+  // divide-by-zero or a negative number.
+  usdRateUzs: z.coerce.number().positive("Rate must be greater than zero").max(10_000_000).optional(),
+  eurRateUzs: z.coerce.number().positive("Rate must be greater than zero").max(10_000_000).optional()
+});
+
+export const roomCategoryUpdateSchema = z.object({
+  id: z.string().uuid(),
+  nameEn: z.string().trim().min(2).max(120).optional(),
+  nameRu: z.string().trim().min(2).max(120).optional(),
+  nameUz: z.string().trim().min(2).max(120).optional(),
+  descriptionEn: z.string().trim().max(2000).optional().or(z.literal("")),
+  descriptionRu: z.string().trim().max(2000).optional().or(z.literal("")),
+  descriptionUz: z.string().trim().max(2000).optional().or(z.literal("")),
+  basePriceUzs: z.coerce.number().nonnegative("Price cannot be negative").max(1_000_000_000).optional(),
+  capacity: z.coerce.number().int().min(1).max(30).optional(),
+  isActive: z.coerce.boolean().optional()
+});
+
+export const amenityToggleSchema = z.object({
+  amenityKey: z.string().trim().min(1).max(64),
+  isActive: z.coerce.boolean()
+});

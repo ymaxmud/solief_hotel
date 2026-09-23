@@ -1,10 +1,9 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import { getSupabasePublishableKey, getSupabaseUrl } from "./keys";
 
 export function createSupabaseBrowserClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) throw new Error("Missing Supabase browser environment variables");
-  return createBrowserClient(url, anon);
+  // Publishable key only — the secret key is never exposed to the browser.
+  return createBrowserClient(getSupabaseUrl(), getSupabasePublishableKey());
 }

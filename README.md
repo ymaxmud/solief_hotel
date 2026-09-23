@@ -21,18 +21,35 @@ Hotel images live in `public/images/` as numeric PNG files. Edit `src/content/im
 
 1. Create a Supabase Free project.
 2. Run migrations in `supabase/migrations`.
-3. Optionally run `supabase/seed/seed.sql` for development room/staff data.
+3. Run `supabase/seed/seed.sql` to create the hotel row and the four room
+   categories. It contains real launch configuration only — no sample staff, no
+   sample guests, and no invented room numbers.
 4. Add environment variables from `.env.example` to local `.env.local` and Vercel.
-5. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.
+5. Never expose `SUPABASE_SECRET_KEY` to the browser.
 
 Required variables:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 NEXT_PUBLIC_SITE_URL=https://soliefhotel.vercel.app
 ```
+
+The legacy names `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are
+still accepted as a fallback so an un-rotated environment keeps working. Remove them
+once every deployment target uses the names above.
+
+### Site URL
+
+`NEXT_PUBLIC_SITE_URL` is the single source of truth for the public origin: metadata
+base, canonical URL, sitemap, robots, OpenGraph, booking-notification links and staff QR
+links all derive from it (`src/lib/site.ts`). Moving to `https://soliefhotel.com` is a
+change to this variable and a redeploy — no code change.
+
+`NEXT_PUBLIC_*` values are inlined at build time. The optional server-only `SITE_URL`
+is read at request time, so set it too if server-rendered links need to follow a domain
+change before the next build.
 
 ## First Admin
 
@@ -60,19 +77,31 @@ Production operator checklist:
 - Verify no temporary or demo admin credentials remain active.
 - Use `/admin/users` to deactivate unused users, change roles, and send password reset links.
 
-## Resend Email
+## Booking Notification Email
 
-Set:
+Production sends booking notifications over Gmail SMTP with a Google App Password —
+no third-party email API.
 
 ```bash
-RESEND_API_KEY=
-BOOKING_EMAIL_FROM=
-BOOKING_EMAIL_TO=
-BOOKING_EMAIL_CC=
-HOTEL_OWNER_EMAIL=
+SMTP_USER=hsolief@gmail.com
+SMTP_PASS=<Google App Password, never the account password>
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+BOOKING_EMAIL_TO=hsolief@gmail.com,fayzullayevquvonch00@gmail.com
 ```
 
-`BOOKING_EMAIL_FROM` must be a verified Resend sender/domain for production. New public booking requests are always saved first. If Resend, sender, or recipients are missing, or if email fails, the request remains in Supabase and a `notifications` row records `manual_required` or `failed`.
+`BOOKING_EMAIL_TO` accepts a comma-separated list. Recipients are de-duplicated
+server-side (case-insensitively) across `BOOKING_EMAIL_TO`, `BOOKING_EMAIL_CC` and
+`HOTEL_OWNER_EMAIL`, and one email is sent to all of them.
+
+`RESEND_API_KEY` remains supported as a fallback transport and is used only when SMTP
+is not configured.
+
+**Booking requests are saved before any notification is attempted.** If email is not
+configured or delivery fails, the request still exists in Supabase, a `notifications`
+row records `manual_required` or `failed`, the guest still receives a booking
+reference, and staff can see the request in `/admin/booking-requests`. A guest is never
+told their request was received unless it was actually stored.
 
 ## Supabase Auth SMTP
 
@@ -84,7 +113,7 @@ Supabase's built-in Auth email sender is rate-limited and should not be used for
 4. Send a test email from Supabase.
 5. Keep SMTP credentials in Supabase, not in this repository.
 
-This is separate from `RESEND_API_KEY`, which is used by the app for booking request notifications.
+This is separate from the booking-notification transport above.
 
 ## Public Booking Spam Protection
 
@@ -120,6 +149,7 @@ Routes:
 - `/admin/guests`
 - `/admin/booking-requests`
 - `/admin/rooms`
+- `/admin/website`
 - `/admin/stays`
 - `/admin/services`
 - `/admin/reports`
@@ -149,7 +179,16 @@ Set or rotate staff attendance PINs from `/admin/staff`. PINs are hashed in Supa
 
 Manual overrides are admin/manager-only and require a correction reason. Overrides write audit logs.
 
-## Supabase Migrations Added
+## Supabase Migrations
+
+Apply migrations in `supabase/migrations/` in filename order, before deploying code
+that calls the RPCs below. Never edit an applied migration — add a new forward one.
+
+`202609220002_remove_development_seed_data.sql` **deletes rows**. Take a database
+backup before applying it. It is deliberately narrow: it only matches exact fingerprints
+from the old `supabase/seed/seed.sql` (the `@example.com` sample staff and the seeded
+rooms 101/102/201/202, and only when nothing references them). Anything the hotel
+entered itself is left untouched.
 
 The hardening migration adds:
 
@@ -169,13 +208,32 @@ CSV exports are available from `/admin/reports` for attendance, booking requests
 
 ## Public Content
 
-Editable public content lives in:
+Operational content the hotel changes regularly is **owner-editable in
+`/admin/website`** and needs no deploy:
+
+- contact details (phone, email, address, WhatsApp, Telegram, Google Maps)
+- check-in / check-out times
+- Google rating, review count and reviews link
+- room category names, descriptions, nightly UZS price, capacity, active state
+- which amenities are currently offered
+- UZS→USD and UZS→EUR display rates
+- hotel photography (upload/remove, stored in the `hotel-media` Supabase bucket)
+
+Admin and manager can change these; receptionist has read-only access. Every change is
+authorized server-side and written to the audit log.
+
+The public site reads this through `src/lib/public/siteData.ts`, a server-only module
+that returns a sanitized, visitor-safe shape. If the database is unreachable, the page
+falls back to the bundled launch content rather than returning a 500 — but a booking
+submission has no such fallback and fails loudly instead.
+
+Design content (photography, long-form copy, FAQ, amenity catalogue and icons) stays in
+the repository:
 
 - `src/content/siteContent.ts`
 - `src/content/contact.ts`
 - `src/content/rooms.ts`
 - `src/content/amenities.ts`
-- `src/content/reviews.ts`
 - `src/content/faq.ts`
 - `src/content/images.ts`
 
@@ -190,11 +248,25 @@ Translations live in:
 
 Add all variables from `.env.example` in Vercel Project Settings. The app is compatible with Vercel serverless functions.
 
-## Owner Confirmation Needed
+## Booking Model
 
-- Official email/domain
-- Official WhatsApp/Telegram links
-- Exact room pricing
-- Breakfast, parking, transfer, restaurant/kitchen, laundry details
-- Official booking platform and social links
-- Missing `14.png` if a complete 35-image set is required
+This is **not** an instant reservation engine and has no payment integration:
+
+```
+booking request → hotel reviews manually → hotel confirms with the guest
+```
+
+The site never tells a guest a room is confirmed. Any displayed total is labelled an
+estimate, and the server calculates it from the configured category price rather than
+trusting anything the browser sends. See `PAYMENT_READINESS_NOTES.md`.
+
+## Still With the Owner
+
+- Real physical room numbers for `/admin/rooms`. The seeded sample rooms were removed
+  rather than replaced with invented ones; the table is intentionally empty until the
+  hotel enters its own.
+- Booking.com, Instagram and Facebook profiles. These are empty in
+  `src/content/contact.ts` and are hidden in the UI rather than rendered as dead links.
+  No profile is invented.
+- `public/images/14.png` is absent and excluded via `missingImageIds`; supply it only if
+  a complete 1–35 set is wanted.

@@ -15,6 +15,7 @@ export type CrmAction =
   | "room:update"
   | "staff:manage"
   | "user:manage"
+  | "website:manage"
   | "attendance:manual"
   | "attendance:review"
   | "export:attendance"
@@ -38,6 +39,9 @@ const actionRoles: Record<CrmAction, UserRole[]> = {
   "room:update": ["admin", "manager"],
   "staff:manage": ["admin", "manager"],
   "user:manage": ["admin"],
+  // Public website content is day-to-day hotel operation, not a security
+  // setting, so a manager can maintain it. User management stays admin-only.
+  "website:manage": ["admin", "manager"],
   "attendance:manual": ["admin", "manager"],
   "attendance:review": ["admin", "manager"],
   "export:attendance": ["admin", "manager"],
