@@ -22,6 +22,13 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Pin npm explicitly. The lockfile is generated with this version, and npm
+      # major versions disagree about which optional transitive entries belong in
+      # it — npm 11 omits `@emnapi/runtime`, which npm 10 then rejects. Pinning
+      # keeps `npm ci` reproducible instead of tracking the runner image default.
+      - name: Pin npm
+        run: npm i -g npm@10.9.8
+
       - name: Install dependencies
         run: npm ci
 
@@ -54,6 +61,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      # Pin npm explicitly. The lockfile is generated with this version, and npm
+      # major versions disagree about which optional transitive entries belong in
+      # it — npm 11 omits `@emnapi/runtime`, which npm 10 then rejects. Pinning
+      # keeps `npm ci` reproducible instead of tracking the runner image default.
+      - name: Pin npm
+        run: npm i -g npm@10.9.8
 
       - name: Install dependencies
         run: npm ci

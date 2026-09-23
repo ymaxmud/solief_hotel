@@ -26,7 +26,10 @@ let categoryResult: { data: unknown; error: { message: string } | null } = {
   error: null
 };
 
-let bookingRpcResult: { data: unknown; error: { message: string } | null } = {
+/** When true, the mock database only has the legacy 12-argument booking RPC. */
+let snapshotRpcMissing = false;
+
+let bookingRpcResult: { data: unknown; error: { code?: string; message: string } | null } = {
   data: { booking_request_id: "booking-id", guest_id: "guest-id", public_reference: "SOL-TEST" },
   error: null
 };
@@ -40,7 +43,23 @@ vi.mock("@/lib/supabase/server", () => ({
           if (name === "check_public_rate_limit") {
             return { data: { ok: true, attempts: 1, retry_after_seconds: 0 }, error: null };
           }
-          if (name === "create_public_booking_request") return bookingRpcResult;
+          if (name === "create_public_booking_request") {
+            // Simulate a database that only has the legacy 12-argument version:
+            // the call carrying snapshot arguments is rejected the way PostgREST
+            // rejects an unknown signature.
+            const isSnapshotCall = "p_room_category_id" in payload;
+            if (snapshotRpcMissing && isSnapshotCall) {
+              return {
+                data: null,
+                error: {
+                  code: "PGRST202",
+                  message:
+                    "Could not find the function public.create_public_booking_request(...) in the schema cache"
+                }
+              };
+            }
+            return bookingRpcResult;
+          }
           return { data: null, error: new Error("unknown rpc") };
         }
       };
@@ -104,6 +123,7 @@ describe("booking request API", () => {
   beforeEach(() => {
     inserts.length = 0;
     rpcCalls.length = 0;
+    snapshotRpcMissing = false;
     categoryResult = {
       data: [
         {
@@ -185,5 +205,61 @@ describe("booking request API", () => {
     expect(response.status).toBe(500);
     expect(json.ok).toBe(false);
     expect(json.reference).toBeUndefined();
+  });
+
+  describe("database without the price-snapshot migration", () => {
+    it("falls back to the legacy signature so the booking is still persisted", async () => {
+      snapshotRpcMissing = true;
+      const { response, json } = await post(bookingBody());
+
+      expect(response.status).toBe(200);
+      expect(json.ok).toBe(true);
+      expect(json.reference).toMatch(/^SOL-/);
+
+      const bookingCalls = rpcCalls.filter((item) => item.name === "create_public_booking_request");
+      expect(bookingCalls).toHaveLength(2);
+      // First the current signature, then the legacy retry.
+      expect("p_room_category_id" in bookingCalls[0].payload).toBe(true);
+      expect("p_room_category_id" in bookingCalls[1].payload).toBe(false);
+    });
+
+    it("still sends every booking field on the legacy retry", async () => {
+      snapshotRpcMissing = true;
+      await post(bookingBody());
+      const legacy = rpcCalls.filter((item) => item.name === "create_public_booking_request")[1];
+      for (const key of [
+        "p_reference",
+        "p_full_name",
+        "p_phone",
+        "p_guests_count",
+        "p_check_in",
+        "p_check_out",
+        "p_room_type",
+        "p_preferred_contact",
+        "p_preferred_language",
+        "p_source"
+      ]) {
+        expect(legacy.payload).toHaveProperty(key);
+      }
+      expect(Object.keys(legacy.payload)).toHaveLength(12);
+    });
+
+    it("still records a notification and returns a reference to the guest", async () => {
+      snapshotRpcMissing = true;
+      const { json } = await post(bookingBody());
+      expect(inserts.some((item) => item.table === "notifications")).toBe(true);
+      expect(json.bookingRequestId).toBe("booking-id");
+    });
+
+    it("does not retry on a genuine database error, and still fails closed", async () => {
+      // A real failure must not be mistaken for a missing signature.
+      bookingRpcResult = { data: null, error: { code: "23505", message: "duplicate key value" } };
+      const { response, json } = await post(bookingBody());
+
+      expect(response.status).toBe(500);
+      expect(json.ok).toBe(false);
+      expect(json.reference).toBeUndefined();
+      expect(rpcCalls.filter((item) => item.name === "create_public_booking_request")).toHaveLength(1);
+    });
   });
 });

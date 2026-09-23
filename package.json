@@ -2,6 +2,10 @@
   "name": "solief-hotel",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "create-initial-admin": "node scripts/create-initial-admin.mjs"
+    "create-initial-admin": "node scripts/create-initial-admin.mjs",
+    "cleanup-demo-data": "node scripts/cleanup-demo-data.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

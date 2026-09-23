@@ -5,12 +5,29 @@ Production Next.js site and Supabase-backed hotel CRM for Solief Hotel in Tashke
 ## Run
 
 ```bash
-npm install
+npm ci
 npm run dev
 npm run build
 npm run lint
 npm run typecheck
 npm test
+npm run e2e
+```
+
+### Lockfile and npm version
+
+CI pins **npm 10.9.8** and the lockfile is generated with that version. This is not
+cosmetic: npm major versions disagree about which optional transitive entries belong in
+the lockfile. npm 11 omits `@emnapi/runtime` (reached via the `sharp` override), and
+npm 10 then refuses `npm ci` with "Missing: @emnapi/runtime from lock file". A lockfile
+written by npm 10 is accepted by both.
+
+If you change dependencies, regenerate and verify with both:
+
+```bash
+npx -y npm@10.9.8 install --package-lock-only
+rm -rf node_modules && npx -y npm@10.9.8 ci
+rm -rf node_modules && npm ci
 ```
 
 ## Images
@@ -184,11 +201,41 @@ Manual overrides are admin/manager-only and require a correction reason. Overrid
 Apply migrations in `supabase/migrations/` in filename order, before deploying code
 that calls the RPCs below. Never edit an applied migration — add a new forward one.
 
-`202609220002_remove_development_seed_data.sql` **deletes rows**. Take a database
-backup before applying it. It is deliberately narrow: it only matches exact fingerprints
-from the old `supabase/seed/seed.sql` (the `@example.com` sample staff and the seeded
-rooms 101/102/201/202, and only when nothing references them). Anything the hotel
-entered itself is left untouched.
+Every migration is **non-destructive to business data**. Removing development seed data
+is a separate, audited step (see below) rather than something that happens silently on
+deploy.
+
+### Testing migrations before applying them
+
+`supabase/tests/run-migrations.sh` stands up a throwaway PostgreSQL 16 database, applies
+the Supabase-shaped harness, runs every migration and the seed in order, and asserts the
+resulting schema — columns, tables, RLS policies, the RPC signature swap, the storage
+bucket, the four confirmed room categories, and that the range constraints actually
+reject bad values.
+
+```bash
+brew install postgresql@16
+./supabase/tests/run-migrations.sh
+```
+
+Run this before touching a real project. It catches SQL that only looks correct when
+read — an earlier revision of these migrations created a unique index before the
+de-duplication that index would have rejected.
+
+### Removing development seed data
+
+```bash
+npm run cleanup-demo-data              # preview, changes nothing
+node scripts/cleanup-demo-data.mjs --apply
+```
+
+Preview first, and back up before applying. A seeded record is deleted only if it still
+carries the exact original fingerprint **and** nothing references it. References are
+checked across all five tables that can point at a staff member before anything is
+removed; a dependent row is never deleted to make a parent deletable, and
+`booking_requests.assigned_staff_id` is never nulled out. Anything referenced is
+reported as preserved for human review. The decision logic lives in
+`scripts/seed-fingerprints.mjs` and is unit-tested in `tests/unit/seed-cleanup.test.ts`.
 
 The hardening migration adds:
 
@@ -247,6 +294,19 @@ Translations live in:
 ## Vercel
 
 Add all variables from `.env.example` in Vercel Project Settings. The app is compatible with Vercel serverless functions.
+
+## Booking RPC compatibility
+
+`src/app/api/booking-request/route.ts` calls `create_public_booking_request` with the
+16-argument signature introduced in migration `202609220001`. If that migration has not
+been applied yet, the call fails with PostgREST `PGRST202` and the booking would be lost,
+so the route retries once with the original 12-argument signature — on a
+signature-missing error only. Any other database error still fails closed, and a guest is
+never told a request was received when it was not.
+
+While the fallback is active the booking persists without its price snapshot. Once
+`202609220001` is applied the fallback stops firing (a `console.warn` marks each time it
+does) and can be removed.
 
 ## Booking Model
 
