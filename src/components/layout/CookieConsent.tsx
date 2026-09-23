@@ -31,7 +31,9 @@ export function CookieConsent({ locale }: { locale: Locale }) {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-40 sm:left-4 sm:right-auto sm:max-w-sm">
+    // This notice only renders after mount (it depends on localStorage), which
+    // makes it a reliable "the page has hydrated" signal for end-to-end tests.
+    <div data-testid="cookie-consent" className="fixed bottom-4 left-4 right-4 z-40 sm:left-4 sm:right-auto sm:max-w-sm">
       <div className="rounded-2xl border border-charcoal/10 bg-white/95 p-4 text-sm text-charcoal shadow-soft backdrop-blur">
         <p className="text-charcoal/80">{copy.text}</p>
         <div className="mt-3 flex items-center gap-3">
