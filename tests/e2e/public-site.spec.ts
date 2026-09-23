@@ -8,6 +8,18 @@ import { expect, test } from "@playwright/test";
  * a booking never reports success when it was not persisted.
  */
 
+/**
+ * Wait until React has hydrated.
+ *
+ * The cookie notice is rendered from a useEffect that reads localStorage, so it
+ * is absent in the server HTML and appears only once the client tree is live.
+ * Clicking before that point hits markup with no handler attached, and
+ * Playwright's actionability checks cannot detect it.
+ */
+async function waitForHydration(page: import("@playwright/test").Page) {
+  await expect(page.getByTestId("cookie-consent")).toBeVisible();
+}
+
 test.describe("public site", () => {
   test("home page renders the hotel's confirmed contact channels", async ({ page }) => {
     await page.goto("/");
@@ -35,6 +47,7 @@ test.describe("public site", () => {
 
   test("switches between EN, RU and UZ", async ({ page }) => {
     await page.goto("/");
+    await waitForHydration(page);
     const languages = page.getByRole("group", { name: "Language" }).first();
 
     await languages.getByRole("button", { name: "Русский" }).click();
@@ -53,6 +66,7 @@ test.describe("public site", () => {
 
   test("converts prices to USD and EUR without producing NaN", async ({ page }) => {
     await page.goto("/");
+    await waitForHydration(page);
     const currency = page.getByLabel("Currency");
     for (const code of ["USD", "EUR", "UZS"]) {
       await currency.selectOption(code);
@@ -62,6 +76,7 @@ test.describe("public site", () => {
 
   test("opens the booking request modal and closes it with Escape", async ({ page }) => {
     await page.goto("/");
+    await waitForHydration(page);
     await page.locator("#top").getByRole("button", { name: /send booking request/i }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();

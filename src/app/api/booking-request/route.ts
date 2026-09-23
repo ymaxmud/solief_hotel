@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { bookingSchema } from "@/lib/schema";
+import { bookingSchema, type BookingFormValues } from "@/lib/schema";
 import { buildBookingSnapshot } from "@/lib/public/bookingPricing";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { createBookingReference } from "@/lib/crm/reference";
@@ -81,26 +81,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: bookingRequest, error: bookingError } = await service
-    .rpc("create_public_booking_request", {
-      p_reference: reference,
-      p_full_name: booking.name,
-      p_phone: booking.phone || null,
-      p_email: booking.email || null,
-      p_guests_count: booking.guests,
-      p_check_in: booking.checkIn,
-      p_check_out: booking.checkOut,
-      p_room_type: booking.roomType,
-      p_preferred_contact: booking.contactMethod,
-      p_preferred_language: booking.language,
-      p_message: booking.message || null,
-      p_source: "website",
-      p_room_category_id: snapshot.roomCategoryId,
-      p_nightly_price_uzs: snapshot.nightlyPriceUzs,
-      p_nights: snapshot.nights,
-      p_estimated_total_uzs: snapshot.estimatedTotalUzs
-    })
-    .single();
+  const { data: bookingRequest, error: bookingError } = await persistBookingRequest(service, {
+    reference,
+    booking,
+    snapshot
+  });
 
   if (bookingError) {
     // Persistence failed, so the guest must NOT be told the request was
@@ -161,6 +146,83 @@ export async function POST(request: Request) {
     notificationLogStatus: notificationError ? "failed" : "recorded",
     whatsappLink: buildWhatsAppBookingLink(reference, booking)
   });
+}
+
+/**
+ * Persist the booking request, tolerating a database that has not had the
+ * price-snapshot migration applied yet.
+ *
+ * The 16-argument create_public_booking_request lands in migration
+ * 202609220001. Until that is applied the database only has the original
+ * 12-argument version, and calling the new signature fails with PostgREST
+ * PGRST202 / Postgres 42883 — which would drop the booking entirely.
+ *
+ * So: try the current signature, and on a *signature-missing* error only, retry
+ * with the legacy one. The booking is then stored exactly as it was before the
+ * snapshot feature existed, without the price fields. Any other error is a real
+ * failure and is returned unchanged, so the caller still fails closed and never
+ * tells a guest their request was received when it was not.
+ *
+ * Once the migration is applied this fallback stops firing and can be removed.
+ */
+async function persistBookingRequest(
+  service: ReturnType<typeof createSupabaseServiceClient>,
+  input: {
+    reference: string;
+    booking: BookingFormValues;
+    snapshot: { roomCategoryId: string | null; nightlyPriceUzs: number | null; nights: number; estimatedTotalUzs: number | null };
+  }
+) {
+  const { reference, booking, snapshot } = input;
+
+  const legacyArgs = {
+    p_reference: reference,
+    p_full_name: booking.name,
+    p_phone: booking.phone || null,
+    p_email: booking.email || null,
+    p_guests_count: booking.guests,
+    p_check_in: booking.checkIn,
+    p_check_out: booking.checkOut,
+    p_room_type: booking.roomType,
+    p_preferred_contact: booking.contactMethod,
+    p_preferred_language: booking.language,
+    p_message: booking.message || null,
+    p_source: "website"
+  };
+
+  const current = await service
+    .rpc("create_public_booking_request", {
+      ...legacyArgs,
+      p_room_category_id: snapshot.roomCategoryId,
+      p_nightly_price_uzs: snapshot.nightlyPriceUzs,
+      p_nights: snapshot.nights,
+      p_estimated_total_uzs: snapshot.estimatedTotalUzs
+    })
+    .single();
+
+  if (!current.error || !isMissingFunctionSignature(current.error)) return current;
+
+  console.warn(
+    "[booking-request] Price-snapshot RPC is not available; falling back to the legacy signature. " +
+      "Apply migration 202609220001 to restore the price snapshot.",
+    { reference }
+  );
+
+  return service.rpc("create_public_booking_request", legacyArgs).single();
+}
+
+/**
+ * True only when the database does not have a function with this exact
+ * signature. Matched narrowly on purpose: a broader match would retry through
+ * genuine failures and could mask real data problems.
+ */
+function isMissingFunctionSignature(error: { code?: string; message?: string } | null) {
+  if (!error) return false;
+  // PGRST202: PostgREST could not find the function in its schema cache.
+  // 42883: Postgres undefined_function.
+  if (error.code === "PGRST202" || error.code === "42883") return true;
+  const message = (error.message || "").toLowerCase();
+  return message.includes("could not find the function") || message.includes("does not exist");
 }
 
 async function checkBookingRateLimits(

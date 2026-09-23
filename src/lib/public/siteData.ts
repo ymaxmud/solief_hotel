@@ -46,6 +46,22 @@ const HOTEL_COLUMNS =
 const ROOM_CATEGORY_COLUMNS =
   "slug,name_en,name_ru,name_uz,description_en,description_ru,description_uz,base_price_uzs,capacity,area_sqm,display_order,is_active";
 
+/**
+ * Log a recurring read failure once per distinct cause per process.
+ *
+ * While a migration is pending, a failing settings read happens on every single
+ * request. Logging each one buries real errors in the runtime log, so identical
+ * causes are reported once and then suppressed until the cause changes.
+ */
+const reportedFailures = new Set<string>();
+
+function reportReadFailure(scope: string, message: string) {
+  const key = `${scope}:${message}`;
+  if (reportedFailures.has(key)) return;
+  reportedFailures.add(key);
+  console.error(`[public-site-data] ${scope}`, { error: message, note: "further identical failures suppressed" });
+}
+
 function toNumber(value: number | string | null | undefined) {
   if (value === null || value === undefined) return null;
   const parsed = typeof value === "number" ? value : Number(value);
@@ -136,9 +152,7 @@ export const getPublicSiteData = cache(async function getPublicSiteData(): Promi
   try {
     service = createSupabaseServiceClient();
   } catch (error) {
-    console.error("[public-site-data] Supabase is not configured", {
-      reason: error instanceof Error ? error.message : "unknown"
-    });
+    reportReadFailure("Supabase is not configured", error instanceof Error ? error.message : "unknown");
     return fallback;
   }
 
@@ -149,14 +163,14 @@ export const getPublicSiteData = cache(async function getPublicSiteData(): Promi
   ]);
 
   if (hotelResult.error) {
-    console.error("[public-site-data] Could not read hotel settings", { error: hotelResult.error.message });
+    reportReadFailure("Could not read hotel settings", hotelResult.error.message);
     return fallback;
   }
   if (categoryResult.error) {
-    console.error("[public-site-data] Could not read room categories", { error: categoryResult.error.message });
+    reportReadFailure("Could not read room categories", categoryResult.error.message);
   }
   if (amenityResult.error) {
-    console.error("[public-site-data] Could not read hotel amenities", { error: amenityResult.error.message });
+    reportReadFailure("Could not read hotel amenities", amenityResult.error.message);
   }
 
   const hotel = hotelResult.data as HotelRow | null;
