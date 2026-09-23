@@ -92,8 +92,24 @@ describe("seed staff classification", () => {
 
 describe("seed room classification", () => {
   it("deletes an untouched, never-used seeded room", () => {
-    expect((classifyRoomRow({ room_number: "101", floor: "1", notes: null }, 0) as Verdict).action).toBe("delete");
-    expect((classifyRoomRow({ room_number: "202", floor: "2", notes: null }, 0) as Verdict).action).toBe("delete");
+    // All four seeded rooms, with the floors the seed actually used. A wrong
+    // floor here would make a real seed row look edited and silently survive.
+    for (const [room_number, floor] of [
+      ["101", "1"],
+      ["102", "1"],
+      ["201", "2"],
+      ["202", "2"]
+    ]) {
+      expect(
+        (classifyRoomRow({ room_number, floor, notes: null }, 0) as Verdict).action,
+        `room ${room_number} on floor ${floor}`
+      ).toBe("delete");
+    }
+  });
+
+  it("preserves a seeded room number that sits on a different floor", () => {
+    // Same number, wrong floor: not the seeded row, so leave it alone.
+    expect((classifyRoomRow({ room_number: "102", floor: "3", notes: null }, 0) as Verdict).action).toBe("preserve");
   });
 
   it("preserves a seeded room that a real stay used", () => {

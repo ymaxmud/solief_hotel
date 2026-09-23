@@ -14,9 +14,12 @@ export const SEED_STAFF = [
 
 export const SEED_STAFF_NOTES = "Development seed staff";
 
+// Floors as the original seed wrote them: 101 and 102 on floor 1, 201 and 202
+// on floor 2. Getting a floor wrong here makes a genuine seed row look "edited"
+// and silently preserves it, so these are transcribed from the seed file itself.
 export const SEED_ROOMS = [
   { room_number: "101", floor: "1" },
-  { room_number: "102", floor: "2" },
+  { room_number: "102", floor: "1" },
   { room_number: "201", floor: "2" },
   { room_number: "202", floor: "2" }
 ];
