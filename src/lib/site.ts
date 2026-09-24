@@ -6,7 +6,7 @@
  * OpenGraph, booking notification links, staff QR links — derives from here, so
  * moving to the custom domain is an environment change, not a code change.
  */
-const FALLBACK_SITE_URL = "https://soliefhotel.vercel.app";
+const FALLBACK_SITE_URL = "https://soliefhotel.com";
 
 function normalizeOrigin(value: string) {
   // Strip trailing slashes so callers can safely template `${siteUrl}/path`

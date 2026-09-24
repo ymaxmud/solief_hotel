@@ -50,7 +50,7 @@ Required variables:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
-NEXT_PUBLIC_SITE_URL=https://soliefhotel.vercel.app
+NEXT_PUBLIC_SITE_URL=https://soliefhotel.com
 ```
 
 The legacy names `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are
@@ -59,10 +59,13 @@ once every deployment target uses the names above.
 
 ### Site URL
 
+Production is **https://soliefhotel.com**. `www.soliefhotel.com` returns a 308 to the
+apex, and `soliefhotel.vercel.app` remains as the underlying Vercel deployment hostname.
+
 `NEXT_PUBLIC_SITE_URL` is the single source of truth for the public origin: metadata
 base, canonical URL, sitemap, robots, OpenGraph, booking-notification links and staff QR
-links all derive from it (`src/lib/site.ts`). Moving to `https://soliefhotel.com` is a
-change to this variable and a redeploy — no code change.
+links all derive from it (`src/lib/site.ts`). Changing the domain is a change to this
+variable plus a redeploy — no code change.
 
 `NEXT_PUBLIC_*` values are inlined at build time. The optional server-only `SITE_URL`
 is read at request time, so set it too if server-rendered links need to follow a domain

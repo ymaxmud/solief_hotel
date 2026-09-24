@@ -55,6 +55,10 @@ describe("booking notification recipients", () => {
 
 describe("booking notification body", () => {
   it("includes the booking details and the server-side price snapshot", () => {
+    // Deliberately a NON-canonical origin: production is soliefhotel.com, so this
+    // proves the admin link follows whatever is configured instead of being
+    // hardcoded to the live domain. The test below stubs the real domain and
+    // asserts the legacy host is absent.
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://soliefhotel.vercel.app");
     const { subject, body } = buildBookingNotification("SOL-20270101-ABCDEF", booking, snapshot);
     expect(subject).toContain("E2E Solief Test");
