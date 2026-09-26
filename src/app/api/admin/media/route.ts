@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { withRole, apiError } from "@/lib/crm/api";
 import { logAudit } from "@/lib/crm/auth";
 import { assertCan } from "@/lib/crm/permissions";
@@ -113,6 +114,7 @@ export async function POST(request: Request) {
       return apiError("media:record", error);
     }
 
+    revalidatePath("/", "layout");
     await logAudit({
       request,
       actorUserId: profile.id,
@@ -160,6 +162,7 @@ export async function DELETE(request: Request) {
       });
     }
 
+    revalidatePath("/", "layout");
     await logAudit({
       request,
       actorUserId: profile.id,

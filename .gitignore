@@ -35,3 +35,6 @@ solief_room_photos/
 
 # playwright
 playwright-report/
+
+# handover package is delivered separately, not versioned here
+handover/

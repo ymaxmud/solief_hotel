@@ -3,9 +3,9 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import { contact } from "@/content/contact";
 import { getSiteUrl } from "@/lib/site";
 import { getPublicSiteData } from "@/lib/public/siteData";
+import { buildStructuredData } from "@/lib/seo/structuredData";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -18,6 +18,11 @@ const playfair = Playfair_Display({
   variable: "--font-display",
   display: "swap"
 });
+
+// Cache rendered pages at the edge instead of rebuilding per request. Owner
+// edits call revalidatePath() so they appear immediately; this hourly ceiling
+// only exists so a missed invalidation cannot pin stale content forever.
+export const revalidate = 3600;
 
 const siteUrl = getSiteUrl();
 
@@ -64,42 +69,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const site = await getPublicSiteData();
 
-  const schema: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "Hotel",
-    name: site.hotelName,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Naqqoshlik 12",
-      postalCode: "100185",
-      addressLocality: "Tashkent",
-      addressCountry: "UZ"
-    },
-    telephone: site.phoneE164,
-    email: site.email,
-    hasMap: site.googleReviewsUrl || site.googleMapsUrl,
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: contact.coordinates.lat,
-      longitude: contact.coordinates.lng
-    },
-    checkinTime: site.checkIn,
-    checkoutTime: site.checkOut,
-    url: siteUrl
-  };
-
-  // Only publish an aggregate rating when the hotel has entered a real one.
-  // An invented or partial rating in structured data is a Google penalty risk,
-  // so the property is omitted rather than guessed.
-  if (site.googleRating !== null && site.googleReviewCount !== null && site.googleReviewCount > 0) {
-    schema.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: site.googleRating,
-      reviewCount: site.googleReviewCount,
-      bestRating: 5,
-      worstRating: 1
-    };
-  }
+  const schema = buildStructuredData(siteUrl, site);
 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>

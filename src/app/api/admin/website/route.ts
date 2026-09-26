@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
 import { amenityToggleSchema, roomCategoryUpdateSchema, websiteSettingsSchema } from "@/lib/crm/validation";
+
+/**
+ * Drop the cached public pages so an owner edit is visible immediately.
+ *
+ * The public site is served from the ISR cache for speed; without this, a
+ * settings change would not appear until the revalidate ceiling elapsed.
+ * Called after every successful mutation.
+ */
+function refreshPublicSite() {
+  revalidatePath("/", "layout");
+}
 
 /**
  * Owner-editable public website configuration.
@@ -87,6 +99,7 @@ async function updateHotelSettings(request: Request, actorId: string, service: S
   const { data: before } = await service.from("hotels").select(HOTEL_COLUMNS).eq("id", input.id).maybeSingle();
   const { data, error } = await service.from("hotels").update(update).eq("id", input.id).select(HOTEL_COLUMNS).single();
   if (error) return apiError("website:update", error);
+  refreshPublicSite();
   await insertAuditWithBefore(request, actorId, "update", "hotels", data.id, before, data);
   return NextResponse.json({ ok: true, data });
 }
@@ -121,6 +134,7 @@ async function updateRoomCategory(request: Request, actorId: string, service: Se
     .select(CATEGORY_COLUMNS)
     .single();
   if (error) return apiError("website:room-category", error);
+  refreshPublicSite();
   await insertAuditWithBefore(request, actorId, "update", "room_categories", data.id, before, data);
   return NextResponse.json({ ok: true, data });
 }
@@ -141,6 +155,7 @@ async function toggleAmenity(request: Request, actorId: string, service: Service
     .select("amenity_key,is_active")
     .single();
   if (error) return apiError("website:amenity", error);
+  refreshPublicSite();
   await insertAudit(request, actorId, "update", "hotel_amenities", input.amenityKey, data);
   return NextResponse.json({ ok: true, data });
 }

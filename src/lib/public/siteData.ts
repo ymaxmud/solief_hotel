@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import { unstable_noStore as noStore } from "next/cache";
 import type { Room } from "@/types";
 import { getFallbackSiteData, toE164, type PublicSiteData } from "./types";
 import { rooms as fallbackRooms } from "@/content/rooms";
@@ -138,14 +137,14 @@ export function mergeRooms(categories: RoomCategoryRow[], baseRooms: Room[] = fa
  * (rendered content) share a single database read per request instead of two.
  *
  * Runs on the server with the secret key, so no CRM table is exposed to the
- * browser through RLS. A read failure is logged and falls back to the bundled
+ * browser through RLS. The result is cached by the route segment and
+ * invalidated on demand when an owner saves settings (see the website API), so
+ * visitors get a CDN-cached page and edits still appear immediately. A read failure is logged and falls back to the bundled
  * launch content — the homepage must not 500 because a non-essential settings
  * read failed. Booking submission has no such fallback: it fails loudly rather
  * than telling a guest their request was received.
  */
 export const getPublicSiteData = cache(async function getPublicSiteData(): Promise<PublicSiteData> {
-  // Owner edits in /admin/website must appear immediately.
-  noStore();
   const fallback = getFallbackSiteData();
 
   let service: ReturnType<typeof createSupabaseServiceClient>;
