@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { withRole, insertAudit, apiError } from "@/lib/crm/api";
 import { assertCan } from "@/lib/crm/permissions";
 import { amenityToggleSchema, roomCategoryUpdateSchema, websiteSettingsSchema } from "@/lib/crm/validation";
-
-/**
- * Drop the cached public pages so an owner edit is visible immediately.
- *
- * The public site is served from the ISR cache for speed; without this, a
- * settings change would not appear until the revalidate ceiling elapsed.
- * Called after every successful mutation.
- */
-function refreshPublicSite() {
-  revalidatePath("/", "layout");
-}
+import { refreshPublicSite } from "@/lib/public/revalidate";
 
 /**
  * Owner-editable public website configuration.

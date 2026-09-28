@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Locale } from "@/types";
 import { legalContent } from "@/content/legal";
+import { legalHref } from "@/lib/i18n/routing";
 
 const STORAGE_KEY = "solief-cookie-consent";
 
@@ -44,7 +45,7 @@ export function CookieConsent({ locale }: { locale: Locale }) {
           >
             {copy.accept}
           </button>
-          <Link href="/privacy" className="focus-ring text-xs font-semibold text-oxford underline-offset-4 hover:underline">
+          <Link href={legalHref("privacy", locale)} className="focus-ring text-xs font-semibold text-oxford underline-offset-4 hover:underline">
             {copy.more}
           </Link>
         </div>

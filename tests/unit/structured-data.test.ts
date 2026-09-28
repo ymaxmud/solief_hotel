@@ -109,3 +109,80 @@ describe("structured data", () => {
     expect(description.length).toBeGreaterThan(200);
   });
 });
+
+// /ru and /uz are their own indexable documents, so their structured data has to
+// speak their language — an English graph on a Russian page gives Google's AI
+// nothing Russian to quote, which is the whole point of having the URL.
+describe("structured data per locale", () => {
+  // JSON-LD is untyped by nature; naming the few shapes these assertions touch
+  // keeps them readable without reaching for `any`.
+  type Ref = { "@id": string };
+  type Named = { name: string };
+  type HotelNode = {
+    "@id": string;
+    description: string;
+    makesOffer: Array<Named & { url: string }>;
+    amenityFeature: Named[];
+  };
+  type FaqNode = Ref & {
+    url: string;
+    inLanguage: string;
+    mainEntity: Named[];
+    about: Ref;
+    isPartOf: Ref;
+  };
+
+  const localized = (locale: "ru" | "uz") =>
+    buildStructuredData(SITE, getFallbackSiteData(), locale, `/${locale}`);
+  const hotelOf = (g = graph()) => node("Hotel", g) as unknown as HotelNode;
+  const faqOf = (g = graph()) => node("FAQPage", g) as unknown as FaqNode;
+
+  it("describes the hotel and its rooms in the language of the page", () => {
+    const ru = hotelOf(localized("ru"));
+    expect(ru.description).toContain("Ташкента");
+    expect(ru.description).toContain("завтрак");
+    expect(ru.makesOffer[0].name).toBe("Стандартный двухместный номер");
+    expect(ru.amenityFeature[0].name).toBe("Бесплатный Wi-Fi");
+
+    const uz = hotelOf(localized("uz"));
+    expect(uz.description).toContain("Toshkent");
+    expect(uz.description).toContain("nonushta");
+    expect(uz.makesOffer[0].name).toBe("Standart ikki kishilik xona");
+  });
+
+  it("answers the FAQ in the page's language and scopes it to that URL", () => {
+    for (const locale of ["ru", "uz"] as const) {
+      const faq = faqOf(localized(locale));
+      expect(faq["@id"]).toBe(`${SITE}/${locale}#faq`);
+      expect(faq.url).toBe(`${SITE}/${locale}`);
+      expect(faq.inLanguage).toBe(locale);
+      expect(faq.mainEntity.length).toBeGreaterThanOrEqual(8);
+      // Linked back to the one hotel entity rather than floating free.
+      expect(faq.about["@id"]).toBe(`${SITE}/#hotel`);
+      expect(faq.isPartOf["@id"]).toBe(`${SITE}/#website`);
+    }
+
+    expect(faqOf(localized("ru")).mainEntity[0].name).toContain("заезд");
+  });
+
+  it("keeps one Hotel entity across all three URLs", () => {
+    const ids = [graph(), localized("ru"), localized("uz")].map((g) => hotelOf(g)["@id"]);
+    expect(new Set(ids).size).toBe(1);
+    expect(ids[0]).toBe(`${SITE}/#hotel`);
+  });
+
+  it("points room offers at the localized page, not the English one", () => {
+    expect(hotelOf(localized("ru")).makesOffer[0].url).toBe(`${SITE}/ru#rooms`);
+    // The English root must not gain a double slash.
+    expect(hotelOf().makesOffer[0].url).toBe(`${SITE}/#rooms`);
+  });
+
+  it("emits no empty keys in the localized graphs either", () => {
+    for (const locale of ["ru", "uz"] as const) {
+      const json = JSON.stringify(localized(locale));
+      expect(json).not.toContain("null");
+      expect(json).not.toContain('""');
+      expect(json).not.toContain("[]");
+    }
+  });
+});

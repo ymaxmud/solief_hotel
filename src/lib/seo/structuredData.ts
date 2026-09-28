@@ -20,15 +20,46 @@ import { contact } from "@/content/contact";
 
 const SCHEMA = "https://schema.org";
 
-function hotelDescription(site: PublicSiteData) {
+/**
+ * The description an AI summary is most likely to quote, in the language of the
+ * page being rendered. Written per locale rather than translated mechanically,
+ * and assembled from live data (address, room count, prices, check-in times) so
+ * it cannot drift away from what the page itself shows.
+ */
+function hotelDescription(site: PublicSiteData, locale: Locale) {
   const cheapest = site.rooms.reduce(
     (min, room) => (room.priceUzs > 0 && room.priceUzs < min ? room.priceUzs : min),
     Number.POSITIVE_INFINITY
   );
-  const from = Number.isFinite(cheapest) ? ` Rooms from ${cheapest.toLocaleString("en-US")} UZS per night.` : "";
+  const price = Number.isFinite(cheapest) ? cheapest.toLocaleString("en-US") : null;
+  const count = site.rooms.length;
+
+  if (locale === "ru") {
+    const from = price ? ` Номера от ${price} UZS за ночь.` : "";
+    return (
+      `Solief Hotel — бутик-отель в Чиланзарском районе Ташкента, Узбекистан, по адресу ${site.address}. ` +
+      `В отеле ${count} категории номеров: завтрак включён, бесплатный Wi-Fi, кондиционер, ` +
+      `отдельная ванная комната, круглосуточная стойка регистрации, прачечная и трансфер из аэропорта по запросу.${from} ` +
+      `Заезд с ${site.checkIn}, выезд до ${site.checkOut}. ` +
+      `Номера бронируются через заявку: отель подтверждает наличие мест напрямую гостю.`
+    );
+  }
+
+  if (locale === "uz") {
+    const from = price ? ` Xonalar bir kecha uchun ${price} UZS dan.` : "";
+    return (
+      `Solief Hotel — Toshkentning Chilonzor tumanida, ${site.address} manzilida joylashgan butik mehmonxona. ` +
+      `Mehmonxonada ${count} toifadagi xona mavjud: nonushta narxga kiritilgan, bepul Wi-Fi, konditsioner, ` +
+      `alohida hammom, kunu tun ishlaydigan qabulxona, kir yuvish va so‘rov bo‘yicha aeroport transferi.${from} ` +
+      `Kirish ${site.checkIn} dan, chiqish ${site.checkOut} gacha. ` +
+      `Xonalar bron so‘rovi orqali band qilinadi: mehmonxona bo‘sh joylarni mehmon bilan bevosita tasdiqlaydi.`
+    );
+  }
+
+  const from = price ? ` Rooms from ${price} UZS per night.` : "";
   return (
     `Solief Hotel is a boutique hotel in the Chilanzar district of Tashkent, Uzbekistan, at ${site.address}. ` +
-    `It offers ${site.rooms.length} room categories with breakfast included, free Wi-Fi, air conditioning, ` +
+    `It offers ${count} room categories with breakfast included, free Wi-Fi, air conditioning, ` +
     `private bathrooms, 24/7 reception, laundry and airport transfer on request.${from} ` +
     `Check-in is from ${site.checkIn} and check-out is until ${site.checkOut}. ` +
     `Rooms are reserved by sending a booking request; the hotel confirms availability directly with the guest.`
@@ -50,7 +81,7 @@ function hotelImages(siteUrl: string, site: PublicSiteData) {
   return out.slice(0, 12);
 }
 
-function roomOffers(siteUrl: string, site: PublicSiteData, locale: Locale) {
+function roomOffers(pageUrl: string, siteUrl: string, site: PublicSiteData, locale: Locale) {
   return site.rooms
     .filter((room) => room.priceUzs > 0)
     .map((room) => ({
@@ -60,7 +91,7 @@ function roomOffers(siteUrl: string, site: PublicSiteData, locale: Locale) {
       price: room.priceUzs,
       priceCurrency: "UZS",
       availability: `${SCHEMA}/InStock`,
-      url: `${siteUrl}/#rooms`,
+      url: `${pageUrl}#rooms`,
       itemOffered: {
         "@type": "HotelRoom",
         name: room.name[locale],
@@ -73,19 +104,34 @@ function roomOffers(siteUrl: string, site: PublicSiteData, locale: Locale) {
     }));
 }
 
-function amenityFeatures(site: PublicSiteData) {
+function amenityFeatures(site: PublicSiteData, locale: Locale) {
   const active = new Set(site.activeAmenityIds);
   return amenityCatalogue
     .filter((amenity) => active.has(amenity.id))
     .map((amenity) => ({
       "@type": "LocationFeatureSpecification",
-      name: amenity.title.en,
+      name: amenity.title[locale],
       value: true
     }));
 }
 
-export function buildStructuredData(siteUrl: string, site: PublicSiteData, locale: Locale = "en") {
+/**
+ * @param siteUrl  Origin of the site, e.g. https://soliefhotel.com
+ * @param locale   Language of the page being rendered.
+ * @param pagePath Path of the page being rendered ("/", "/ru", "/uz"). The
+ *                 Hotel keeps one stable @id across all three because it is one
+ *                 real-world entity; only the page-scoped nodes (WebPage-level
+ *                 FAQ, fragment links) vary per locale.
+ */
+export function buildStructuredData(
+  siteUrl: string,
+  site: PublicSiteData,
+  locale: Locale = "en",
+  pagePath = "/"
+) {
   const hotelId = `${siteUrl}/#hotel`;
+  // "/" must not become "//", and "/ru" must not gain a trailing slash.
+  const pageUrl = pagePath === "/" ? `${siteUrl}/` : `${siteUrl}${pagePath}`;
   const prices = site.rooms.map((room) => room.priceUzs).filter((price) => price > 0);
   const low = prices.length ? Math.min(...prices) : null;
   const high = prices.length ? Math.max(...prices) : null;
@@ -99,7 +145,7 @@ export function buildStructuredData(siteUrl: string, site: PublicSiteData, local
     "@type": "Hotel",
     "@id": hotelId,
     name: site.hotelName,
-    description: hotelDescription(site),
+    description: hotelDescription(site, locale),
     url: siteUrl,
     image: hotelImages(siteUrl, site),
     logo: `${siteUrl}/icon.svg`,
@@ -131,8 +177,8 @@ export function buildStructuredData(siteUrl: string, site: PublicSiteData, local
     ],
     // Every room category is non-smoking.
     smokingAllowed: false,
-    amenityFeature: amenityFeatures(site),
-    makesOffer: roomOffers(siteUrl, site, locale),
+    amenityFeature: amenityFeatures(site, locale),
+    makesOffer: roomOffers(pageUrl, siteUrl, site, locale),
     numberOfRooms: undefined
   };
 
@@ -169,9 +215,15 @@ export function buildStructuredData(siteUrl: string, site: PublicSiteData, local
     publisher: { "@id": hotelId }
   };
 
+  // Page-scoped: each localized homepage has its own FAQ node, answering in its
+  // own language, linked back to the one Hotel entity and the WebSite.
   const faqPage = {
     "@type": "FAQPage",
-    "@id": `${siteUrl}/#faq`,
+    "@id": `${pageUrl}#faq`,
+    url: pageUrl,
+    inLanguage: locale,
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    about: { "@id": hotelId },
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question[locale],

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Dictionary } from "@/i18n/dictionary";
 import { bookingSchema, type BookingFormValues, type QuickBookingValues } from "@/lib/schema";
+import { legalHref } from "@/lib/i18n/routing";
 import { useSiteData } from "@/components/SiteDataProvider";
 import { legalContent } from "@/content/legal";
 import { formatPrice } from "@/lib/currency";
@@ -156,7 +157,7 @@ export function BookingRequestForm({
       <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
       <p className="text-xs text-muted">
         {legalContent[locale].bookingConsent.before}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-oxford underline-offset-4 hover:underline">
+        <a href={legalHref("privacy", locale)} target="_blank" rel="noopener noreferrer" className="font-semibold text-oxford underline-offset-4 hover:underline">
           {legalContent[locale].bookingConsent.link}
         </a>
         {legalContent[locale].bookingConsent.after}

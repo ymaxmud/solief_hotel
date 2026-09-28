@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Currency, Locale } from "@/types";
 import type { QuickBookingValues } from "@/lib/schema";
 import { getDictionary } from "@/i18n/dictionary";
-import { siteConfig } from "@/content/siteContent";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingCTA } from "@/components/layout/FloatingCTA";
@@ -23,45 +22,17 @@ import { TrustSection } from "./TrustSection";
 import { FAQSection } from "./FAQSection";
 import { ContactSection } from "./ContactSection";
 
-const SUPPORTED_LOCALES: Locale[] = ["en", "ru", "uz"];
-
-function isLocale(value: string | null | undefined): value is Locale {
-  return !!value && (SUPPORTED_LOCALES as string[]).includes(value);
-}
-
-export function HomePage() {
-  const [locale, setLocaleState] = useState<Locale>(siteConfig.defaultLocale);
+/**
+ * The language is fixed by the route that rendered this page — `/` is English,
+ * `/ru` and `/uz` are their own documents — so there is no locale state and no
+ * stored preference to reconcile. Switching language navigates, which is what
+ * lets each language be indexed and shared on its own URL.
+ */
+export function HomePage({ locale }: { locale: Locale }) {
   const [currency, setCurrency] = useState<Currency>("UZS");
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingDefaults, setBookingDefaults] = useState<Partial<QuickBookingValues> | undefined>();
   const t = useMemo(() => getDictionary(locale), [locale]);
-
-  // Resolve the initial locale from ?lang= (so the hreflang alternates actually
-  // serve their language) or a previously saved choice, then keep the document
-  // language and persistence in sync on every change.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromUrl = params.get("lang");
-    const stored = window.localStorage.getItem("solief-locale");
-    const initial = isLocale(fromUrl) ? fromUrl : isLocale(stored) ? stored : siteConfig.defaultLocale;
-    setLocaleState(initial);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
-
-  const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next);
-    try {
-      window.localStorage.setItem("solief-locale", next);
-      const url = new URL(window.location.href);
-      url.searchParams.set("lang", next);
-      window.history.replaceState(null, "", url.toString());
-    } catch {
-      // Non-fatal: locale still applies in-memory if storage/history is unavailable.
-    }
-  }, []);
 
   function openBooking(defaults?: Partial<QuickBookingValues>) {
     setBookingDefaults(defaults);
@@ -70,7 +41,7 @@ export function HomePage() {
 
   return (
     <>
-      <Header t={t} locale={locale} setLocale={setLocale} currency={currency} setCurrency={setCurrency} onBook={() => openBooking()} />
+      <Header t={t} locale={locale} currency={currency} setCurrency={setCurrency} onBook={() => openBooking()} />
       <main>
         <Hero t={t} locale={locale} onBook={() => openBooking()} />
         <BookingBar t={t} locale={locale} onSubmit={(values) => openBooking(values)} />
@@ -83,7 +54,7 @@ export function HomePage() {
         <FAQSection t={t} locale={locale} />
         <ContactSection t={t} locale={locale} />
       </main>
-      <Footer t={t} />
+      <Footer t={t} locale={locale} />
       <FloatingCTA t={t} onBook={() => openBooking()} />
       <Chatbot t={t} locale={locale} onBook={() => openBooking()} />
       <CookieConsent locale={locale} />

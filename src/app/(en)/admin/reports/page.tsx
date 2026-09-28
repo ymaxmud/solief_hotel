@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { getAdminPageContext } from "@/lib/crm/adminPage";
@@ -46,7 +47,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         </label>
         <div className="flex items-end gap-2">
           <button className="min-h-10 rounded-full bg-greenGray px-4 text-sm font-bold text-white">{t.applyFilters}</button>
-          <a href="/admin/reports" className="inline-flex min-h-10 items-center rounded-full border border-charcoal/15 px-4 text-sm font-bold text-greenGray">{t.clear}</a>
+          <Link href="/admin/reports" className="inline-flex min-h-10 items-center rounded-full border border-charcoal/15 px-4 text-sm font-bold text-greenGray">{t.clear}</Link>
         </div>
       </form>
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">

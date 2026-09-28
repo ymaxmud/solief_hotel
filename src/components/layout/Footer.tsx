@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import type { Dictionary } from "@/i18n/dictionary";
+import type { Locale } from "@/types";
+import { legalHref, localeHref } from "@/lib/i18n/routing";
 import { useSiteData } from "@/components/SiteDataProvider";
 import { Wordmark } from "@/components/ui/Wordmark";
 
-export function Footer({ t }: { t: Dictionary }) {
+export function Footer({ t, locale }: { t: Dictionary; locale: Locale }) {
   const site = useSiteData();
+  // The footer is rendered on the legal pages as well as the homepage, so the
+  // section links have to be absolute — and absolute means language-aware, or a
+  // Russian visitor clicking "Номера" would land on the English homepage.
+  const home = localeHref(locale);
   return (
     <footer className="bg-navy px-4 pb-24 pt-16 text-white md:pb-10">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.2fr_.8fr_.8fr]">
@@ -28,14 +34,14 @@ export function Footer({ t }: { t: Dictionary }) {
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           {(["rooms", "gallery", "amenities", "location", "faq", "contact"] as const).map((link) => (
-            <a className="text-white/75 hover:text-white" href={`/#${link}`} key={link}>
+            <a className="text-white/75 hover:text-white" href={`${home}#${link}`} key={link}>
               {t.nav[link]}
             </a>
           ))}
-          <Link className="text-white/75 hover:text-white" href="/privacy">
+          <Link className="text-white/75 hover:text-white" href={legalHref("privacy", locale)}>
             {t.footer.privacy}
           </Link>
-          <Link className="text-white/75 hover:text-white" href="/terms">
+          <Link className="text-white/75 hover:text-white" href={legalHref("terms", locale)}>
             {t.footer.terms}
           </Link>
         </div>
@@ -43,9 +49,11 @@ export function Footer({ t }: { t: Dictionary }) {
       <div className="mx-auto mt-10 max-w-7xl border-t border-white/10 pt-5 text-xs text-white/50">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span>© {new Date().getFullYear()} Solief Hotel. {site.address}</span>
-          <a href="/admin/login" className="text-white/55 underline-offset-4 hover:text-white hover:underline">
+          {/* prefetch={false}: the CRM is a separate app for staff only, and a
+              guest reading the footer should not download its route chunk. */}
+          <Link href="/admin/login" prefetch={false} className="text-white/55 underline-offset-4 hover:text-white hover:underline">
             {t.footer.staffPortal}
-          </a>
+          </Link>
         </div>
       </div>
     </footer>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Dictionary } from "@/i18n/dictionary";
@@ -15,14 +16,12 @@ export function MobileNav({
   t,
   onBook,
   locale,
-  setLocale,
   currency,
   setCurrency
 }: {
   t: Dictionary;
   onBook: () => void;
   locale: Locale;
-  setLocale: (locale: Locale) => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
 }) {
@@ -62,7 +61,7 @@ export function MobileNav({
             </div>
 
             <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-white/12 bg-white/[0.04] p-3">
-              <LanguageSwitcher locale={locale} onChange={setLocale} />
+              <LanguageSwitcher locale={locale} />
               <CurrencySwitcher currency={currency} onChange={setCurrency} />
             </div>
 
@@ -90,13 +89,14 @@ export function MobileNav({
               >
                 {t.nav.book}
               </Button>
-              <a
+              <Link
                 href="/admin/login"
+                prefetch={false}
                 onClick={() => setOpen(false)}
                 className="focus-ring block rounded-xl border border-white/12 bg-white/[0.04] p-3 text-center text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white"
               >
                 {t.footer.staffPortal}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

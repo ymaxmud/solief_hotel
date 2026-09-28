@@ -45,23 +45,77 @@ test.describe("public site", () => {
     }
   });
 
-  test("switches between EN, RU and UZ", async ({ page }) => {
+  test("switches between EN, RU and UZ by navigating to each language's URL", async ({ page }) => {
     await page.goto("/");
     await waitForHydration(page);
-    const languages = page.getByRole("group", { name: "Language" }).first();
+    const languages = () => page.getByRole("group", { name: "Language" }).first();
 
-    await languages.getByRole("button", { name: "Русский" }).click();
+    await languages().getByRole("link", { name: "Русский" }).click();
+    await expect(page).toHaveURL(/\/ru$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "ru");
     await expect(page.locator("h1")).toContainText("Ташкенте");
 
-    await languages.getByRole("button", { name: "O‘zbekcha" }).click();
+    await languages().getByRole("link", { name: "O‘zbekcha" }).click();
+    await expect(page).toHaveURL(/\/uz$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "uz");
     await expect(page.locator("h1")).toContainText("Toshkentda");
 
-    await languages.getByRole("button", { name: "English" }).click();
+    await languages().getByRole("link", { name: "English" }).click();
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     // The active language is conveyed to assistive tech, not by colour alone.
-    await expect(languages.getByRole("button", { name: "English" })).toHaveAttribute("aria-pressed", "true");
+    await expect(languages().getByRole("link", { name: "English" })).toHaveAttribute("aria-current", "page");
+  });
+
+  test("serves each language server-side, with truthful hreflang", async ({ request }) => {
+    for (const [path, lang, heading] of [
+      ["/", "en", "Tashkent"],
+      ["/ru", "ru", "Ташкенте"],
+      ["/uz", "uz", "Toshkentda"]
+    ] as const) {
+      const response = await request.get(path);
+      expect(response.status()).toBe(200);
+      const html = await response.text();
+
+      // No JavaScript has run here: this is what a crawler sees.
+      expect(html).toContain(`<html lang="${lang}"`);
+      expect(html).toContain(heading);
+
+      // Every page declares the same three alternates plus x-default, and is
+      // canonical to itself rather than to another language.
+      for (const alternate of ["en", "ru", "uz", "x-default"]) {
+        expect(html).toContain(`hrefLang="${alternate}"`);
+      }
+      // Compare paths, not whole URLs: the canonical host comes from SITE_URL,
+      // which differs between this test run and production.
+      const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+      expect(canonical).toBeTruthy();
+      expect(new URL(canonical!).pathname).toBe(path);
+    }
+  });
+
+  test("404s an unsupported language instead of serving English at its URL", async ({ request }) => {
+    expect((await request.get("/de")).status()).toBe(404);
+  });
+
+  // Regression guard: with `dynamicParams = false` on the [lang] route, these
+  // pages 404'd permanently the first time an owner edit called revalidatePath —
+  // dropping the prerendered entry left Next.js unable to regenerate a param it
+  // was forbidden to render on demand. Serving them twice would not catch that,
+  // so this asserts they survive a cache miss.
+  test("keeps serving the localized pages when they are not prerendered", async ({ request }) => {
+    for (const path of ["/ru", "/uz"]) {
+      // Cache-busting query: the route still has to render, not 404.
+      const response = await request.get(`${path}?cachebust=${Date.now()}`);
+      expect(response.status()).toBe(200);
+      expect(await response.text()).toContain(`<html lang="${path.slice(1)}"`);
+    }
+  });
+
+  test("keeps old ?lang= links working", async ({ page }) => {
+    await page.goto("/?lang=ru");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ru");
+    expect(new URL(page.url()).pathname).toBe("/ru");
   });
 
   test("converts prices to USD and EUR without producing NaN", async ({ page }) => {

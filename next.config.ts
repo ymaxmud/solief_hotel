@@ -50,6 +50,30 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
+  },
+  // Language used to be a ?lang= query parameter on a single URL. It is now a
+  // path (/ru, /uz), so keep older shared links and bookmarks working instead of
+  // silently dropping them onto the English page. This lives here rather than in
+  // middleware deliberately: src/middleware.ts exists only to gate /admin, and
+  // widening its matcher would put an auth function in front of every cached
+  // public page for no benefit. An unrecognised value matches nothing and simply
+  // renders English at /.
+  async redirects() {
+    return [
+      // Next.js carries the original query string through a redirect, so these
+      // land on /ru?lang=ru rather than a bare /ru. That is cosmetic only: the
+      // page is self-canonical to /ru, so the leftover parameter cannot become a
+      // competing URL in search results.
+      ...(["ru", "uz"] as const).map((lang) => ({
+        source: "/",
+        has: [{ type: "query" as const, key: "lang", value: lang }],
+        destination: `/${lang}`,
+        permanent: true
+      })),
+      // English is served from the root, but /en is an obvious thing to type or
+      // guess. Point it home instead of returning a 404.
+      { source: "/en", destination: "/", permanent: true }
+    ];
   }
 };
 

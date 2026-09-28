@@ -5,15 +5,10 @@ import Link from "next/link";
 import type { Locale } from "@/types";
 import { getDictionary } from "@/i18n/dictionary";
 import { siteConfig } from "@/content/siteContent";
+import { LOCALES, isLocale, localeHref } from "@/lib/i18n/routing";
 import { legalContent, legalLastUpdated } from "@/content/legal";
 import { Footer } from "@/components/layout/Footer";
 import { CookieConsent } from "@/components/layout/CookieConsent";
-
-const SUPPORTED_LOCALES: Locale[] = ["en", "ru", "uz"];
-
-function isLocale(value: string | null | undefined): value is Locale {
-  return !!value && (SUPPORTED_LOCALES as string[]).includes(value);
-}
 
 export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
   const [locale, setLocaleState] = useState<Locale>(siteConfig.defaultLocale);
@@ -49,11 +44,11 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
     <>
       <header className="border-b border-charcoal/10 bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
-          <Link href="/" className="focus-ring font-display text-xl font-semibold text-navy">
+          <Link href={localeHref(locale)} className="focus-ring font-display text-xl font-semibold text-navy">
             Solief Hotel
           </Link>
           <div className="flex items-center gap-1" role="group" aria-label="Language">
-            {SUPPORTED_LOCALES.map((code) => (
+            {LOCALES.map((code) => (
               <button
                 key={code}
                 type="button"
@@ -71,7 +66,7 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-14">
-        <Link href="/" className="focus-ring text-sm text-oxford underline-offset-4 hover:underline">
+        <Link href={localeHref(locale)} className="focus-ring text-sm text-oxford underline-offset-4 hover:underline">
           ← {bundle.ui.backHome}
         </Link>
         <h1 className="mt-6 font-display text-3xl font-semibold text-navy sm:text-4xl">{content.title}</h1>
@@ -94,7 +89,7 @@ export function LegalPage({ doc }: { doc: "privacy" | "terms" }) {
         </div>
       </main>
 
-      <Footer t={t} />
+      <Footer t={t} locale={locale} />
       <CookieConsent locale={locale} />
     </>
   );

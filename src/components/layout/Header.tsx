@@ -16,14 +16,12 @@ const links = ["rooms", "gallery", "amenities", "location", "reviews", "faq", "c
 export function Header({
   t,
   locale,
-  setLocale,
   currency,
   setCurrency,
   onBook
 }: {
   t: Dictionary;
   locale: Locale;
-  setLocale: (locale: Locale) => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   onBook: () => void;
@@ -51,15 +49,15 @@ export function Header({
           ))}
         </nav>
         <div className="hidden items-center gap-2 lg:flex">
-          <LanguageSwitcher locale={locale} onChange={setLocale} />
+          <LanguageSwitcher locale={locale} />
           <CurrencySwitcher currency={currency} onChange={setCurrency} />
           <Button onClick={onBook} variant="light" className="px-4">
             <CalendarCheck size={17} /> {t.nav.book}
           </Button>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
-          <LanguageSwitcher locale={locale} onChange={setLocale} compact />
-          <MobileNav t={t} onBook={onBook} locale={locale} setLocale={setLocale} currency={currency} setCurrency={setCurrency} />
+          <LanguageSwitcher locale={locale} compact />
+          <MobileNav t={t} onBook={onBook} locale={locale} currency={currency} setCurrency={setCurrency} />
         </div>
       </div>
     </header>
